@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>sketch-006: land wave</title>
+	<style>
+
+		* {
+			box-sizing: border-box;
+		}
+
+		html, body {
+			margin:0;
+			height:100%;
+			font-family: sans-serif;
+			font-size: 1em;
+		}
+
+		form, fieldset {
+			padding: 0;
+			margin: 0;
+			border: 0;
+		}
+
+		fieldset {
+			border-top: 5px solid green;
+		}
+
+		textarea {
+			height: 50%;
+			width: 100%;
+		}
+
+		.container {
+			height: 100%;
+			display:flex;
+			flex-wrap: nowrap;
+			align-items: center;
+			/*background-color: rgb(254, 204, 100);*/
+		}
+
+		.max-height {
+			height:100%;
+		}
+
+		.flex {
+			display: flex;
+		}
+
+		.col {
+			flex-direction: column;
+		}
+
+		.row {
+			flex-direction: row;
+		}
+
+		.alg-center {
+			justify-content: center;
+		}
+
+		.img-container {
+			position: relative;
+			height: 100%;
+		}
+
+		legend {
+			font-size:.5em;
+			text-align: center;
+		}
+
+		.text, img {
+			position:absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+
+		.img-container h1 {
+			padding-left: 10%;
+		}
+
+		.img-container p {
+			padding-left: 10%;
+		}
+	
+		section {
+			padding: 0 2%;
+			/*background-color: green;*/
+			height:100%;
+			display:flex;
+			flex-direction:column;
+			justify-content: center;
+		}
+
+		#output, #toolbox {
+			flex: 1 0 25%;
+		}
+
+		h1, p {
+			padding: 0;
+			margin: 0;
+		}
+
+		#draw {
+			flex: 1 0 50%;
+			padding: 2% 0;
+		}
+
+		#toolbox label {
+			font-size: 0.5em;
+		}
+
+		.partout {
+			height: 100%;
+			border: 5px dashed lightgrey;
+			padding: 5%;
+		}
+
+		.radio label {
+			font-size:0.5em;
+		}
+
+	</style>
+</head>
+<body>
+
+	<div class="container">
+
+		<section id="output">
+			<form name="output flex col">
+				<fieldset class="radio flex">
+					<legend>Output type</legend>
+					<div class="flex">
+						<label>
+							<input type="radio" name="type" value="p5js">p5.js
+						</label>
+						<label>
+							<input id="array" type="radio" name="type" value="array">array
+						</label>
+						<label>
+							<input type="radio" name="type" value="json">JSON
+						</label>
+					<div>
+				</fieldset>
+				
+				<textarea name="output"></textarea>
+				<button type="button" name="download">undo</button>
+				<button type="button" name="download">redo</button>
+				<button type="button" name="clear">clear all</button>
+				<button type="button" name="copy">cmd+c</button>
+				<button type="button" name="save">save</button>					
+				<!-- </fieldset> -->
+			</form>
+		</section><!--#output-->
+
+		<section id="draw">
+			<div class="partout">
+				<div class="img-container">
+					<div class="text">
+						<h1>Hello!</h1>
+						<p>choose file, make shapes, create with p5.js</p>
+						</div>
+				</div><!--.img-container-->
+			</div><!--.img--wrapper-->
+		</section><!--#draw-->
+
+
+		<section id="toolbox">
+			<form name="toolbox">
+				<fieldset>
+					<legend>File</legend>
+					<input type="file" id="file">
+				</fieldset>
+				<fieldset>
+					<legend>2D primitives</legend>
+					<button type="button" name="triange">triangle</button>
+					<button type="button" name="ellipse">ellipse</button>
+					<button type="button" name="line">line</button>
+					<button type="button" name="curve">curve</button>
+					<button type="button" name="bezier">bezier</button>
+					<button type="button" name="arc">arc</button>
+				</fieldset>
+				<fieldset>
+					<legend>Shape</legend>
+					<button type="button" name="curve">curve</button>
+					<button type="button" name="bezier">bezier</button>
+					<button type="button" name="shape">shape</button>
+				<fieldset>
+					<legend>Align shape:</legend>
+					<button type="button" name="top">top</button>
+					<button type="button" name="left">left</button>
+					<button type="button" name="right">right</button>
+					<button type="button" name="bottom">bottom</button>
+				</fieldset>
+			</form>
+		</seciton><!--#toolbar-->
+
+</div><!--.wrapper-->
+<script src='js/p5.js'></script>
+	<!-- // <script src='js/main.js'></script> -->
+
+<script>
+
+	"use strict"
+
+	const imgField = $('.img-container');
+	const imgBtn = $('#file');
+
+	const w = window.innerWidth;
+	const h = window.innerHeight;
+
+	const as = [];
+
+	function $(elm){ 
+		return document.querySelector(elm);
+	}
+
+	function wr(){
+		console.log(as);
+	}
+
+	function shape() {
+		beginShape();
+		// vertex(as[0][0], as[0][1]);
+		as.forEach(a => { vertex(a.x, a.y) });
+		endShape();
+	}
+
+	// function setup() {
+	// 	createCanvas(w,h);
+	// } 
+	
+	// function draw() {
+	// 	// background(0);
+	// 	stroke(250);
+	// 	noFill();
+	// 	shape();
+	// }
+
+	imgBtn.addEventListener('change', e => {
+		
+		let file = e.target.files[0];
+		let imgType = /image/;
+		let img;
+		let size = {
+			w: imgField.clientWidth,
+			h: imgField.clientHeight
+		}
+
+		if ( !imgType.test(file.type) ) {
+			$('.text').innerHTML = '<h1>error</h1><p>I\'m understand only img file types...</p>';
+
+		} else {
+
+			img = document.createElement('img');
+			img.src = window.URL.createObjectURL(file);
+			
+			img.onload = function() {
+        window.URL.revokeObjectURL(this.src);
+        img.width = size.w;
+        if (img.height > size.h) {
+        	img.width -= (img.height - size.h) * (img.width / img.height);
+        }
+      };
+      imgField.innerHTML = "";
+      imgField.appendChild(img);
+    }
+  });
+
+  // window.addEventListener('onresize', )
+
+	// document.body.addEventListener('click', e => {
+	// 	console.log(e);
+	// 	as.push({x:e.clientX, y: e.clientY});
+	// });
+
+	</script>
+</body>
+</html>
