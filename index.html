@@ -69,11 +69,23 @@
 			text-align: center;
 		}
 
+
+		.center {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+
 		.text, img {
 			position:absolute;
 			top: 50%;
 			left: 50%;
 			transform: translate(-50%, -50%);
+		}
+
+		.img-container {
+			position: relative;
 		}
 
 		.img-container h1 {
@@ -258,15 +270,33 @@
 			
 			img.onload = function() {
         window.URL.revokeObjectURL(this.src);
+       	console.log(typeof img);
+       	console.log(img)
         img.width = size.w;
         if (img.height > size.h) {
         	img.width -= (img.height - size.h) * (img.width / img.height);
         }
+              drawImg(img);
       };
       imgField.innerHTML = "";
       imgField.appendChild(img);
     }
   });
+
+	function drawImg(img) {
+
+		let w = img.width;
+		let h = img.height;
+		let canvas = document.createElement('canvas');
+		let ctx =  canvas.getContext('2d');
+		
+		ctx.canvas.width = w;
+		ctx.canvas.height = h;
+		ctx.drawImage(img, 0,0, w, h);
+		imgField.innerHTML = '';
+		canvas.className += 'center';
+		imgField.appendChild(canvas);
+	}
 
   // window.addEventListener('onresize', )
 
