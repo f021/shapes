@@ -95,6 +95,10 @@
 		.img-box p {
 			padding-left: 10%;
 		}
+
+		button.current {
+			color: red;
+		}
 	
 		section {
 			padding: 0 2%;
@@ -132,6 +136,10 @@
 		.radio label {
 			font-size:0.5em;
 		}
+/*for test*/
+		.green {
+			background-color: green;
+		}
 
 	</style>
 </head>
@@ -140,30 +148,25 @@
 	<div class="container">
 
 		<section id="output">
-			<form name="output flex col">
-				<fieldset class="radio flex">
+			<form name="output">
+				<fieldset>
 					<legend>Output type</legend>
-					<div class="flex">
-						<label>
-							<input type="radio" name="type" value="p5js">p5.js
-						</label>
-						<label>
-							<input id="array" type="radio" name="type" value="array">array
-						</label>
-						<label>
-							<input type="radio" name="type" value="json">JSON
-						</label>
 					<div>
+						<select>
+							<option value="p5js">p5.js</option>
+							<option value="array">array</option>
+							<option value="json">JSON</opton>
+					</select>
 				</fieldset>
-				
-				<textarea name="output"></textarea>
-				<button type="button" name="download">undo</button>
-				<button type="button" name="download">redo</button>
+			</form><!-- output -->
+			<textarea name="output" disabled></textarea>
+			<form name="history">
+				<button type="button" name="undo">undo</button>
+				<button type="button" name="history">redo</button>
 				<button type="button" name="clear">clear all</button>
 				<button type="button" name="copy">cmd+c</button>
-				<button type="button" name="save">save</button>					
-				<!-- </fieldset> -->
-			</form>
+				<button type="button" name="save">save</button>
+			</form><!-- history -->
 		</section><!--#output-->
 
 		<section id="draw">
@@ -171,7 +174,7 @@
 				<div class="img-box">
 					<div class="text">
 						<h1>Hello!</h1>
-						<p>choose file, make shapes, create with p5.js</p>
+						<p>choose file, make shapes, have a fun with p5.js</p>
 						</div>
 				</div><!--.img-box-->
 			</div><!--.img-wrapper-->
@@ -179,31 +182,43 @@
 
 
 		<section id="toolbox">
-			<form name="toolbox">
 				<fieldset>
 					<legend>File</legend>
 					<input type="file" id="file">
 				</fieldset>
+				<form name="primitives">
+					<fieldset>
+						<legend>2D primitives</legend>
+						<label><input type="radio" name="primitive" value="triange">triangle</label>
+						<label><input type="radio" name="primitive" value="ellipse">ellipse</label>
+						<label><input type="radio" name="primitive" value="line">line</label>
+						<label><input type="radio" name="primitive" value="curve">curve</label>
+						<label><input type="radio" name="primitive" value="bezier">bezier</label>
+						<label><input type="radio" name="primitive" value="arc">arc</label>
+					</fieldset>
+				</form>
+				<form name="shapes">
+					<fieldset>
+						<legend>Shape</legend>
+						<button type="button" name="curve">curve</button>
+						<button type="button" name="bezier">bezier</button>
+						<button type="button" name="shape">shape</button>
+					</fieldset>
+				</form>
+				<form name="align">
+					<fieldset>
+						<legend>Align shape:</legend>
+						<lable><input type="radio" name="valign" name="top">top</label>
+						<lable><input type="radio" name="align" name="left">left</label>
+						<lable><input type="radio" name="align" name="right">right</label>
+						<lable><input type="radio" name="valign" name="bottom">bottom</label>
+					</fieldset>
+				</form>
+			<form name="coordinate">
 				<fieldset>
-					<legend>2D primitives</legend>
-					<button type="button" name="triange">triangle</button>
-					<button type="button" name="ellipse">ellipse</button>
-					<button type="button" name="line">line</button>
-					<button type="button" name="curve">curve</button>
-					<button type="button" name="bezier">bezier</button>
-					<button type="button" name="arc">arc</button>
-				</fieldset>
-				<fieldset>
-					<legend>Shape</legend>
-					<button type="button" name="curve">curve</button>
-					<button type="button" name="bezier">bezier</button>
-					<button type="button" name="shape">shape</button>
-				<fieldset>
-					<legend>Align shape:</legend>
-					<button type="button" name="top">top</button>
-					<button type="button" name="left">left</button>
-					<button type="button" name="right">right</button>
-					<button type="button" name="bottom">bottom</button>
+					<legend>Coordinates</legend>
+						<label>x: <input type="text" name="x" id="x" disabled></label>
+						<label>y: <input type="text" name="y" id="y" disabled></label>
 				</fieldset>
 			</form>
 		</seciton><!--#toolbar-->
@@ -221,12 +236,20 @@
 	const imgBox = $('.img-box');
 	const imgBtn = $('#file');
 
+	const menu = {
+		shape : function() {
+			console.log(this);
+		}
+	};
+
 	const w = window.innerWidth;
 	const h = window.innerHeight;
 
 	let img;
+	let canvas;
+	let ctx;
 
-	const as = [];
+	const ds = []; // shapes list
 
 	function $(elm){ 
 		return document.querySelector(elm);
@@ -247,21 +270,45 @@
 	// 	shape();
 	// }
 
-function setup(fn, time) {
+
+function ups() {
+	let size = fitSize(getSize(img),getSize(imgBox));
+	let ctx = canvas.getContext('2d');
+	console.log('+');
+	ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+	ctx.beginPath();
+	ctx.moveTo(ds[0].x, ds[0].y);
+	ds.slice(1).forEach((d)=>{ctx.lineTo(d.x, d.y)});
+	ctx.lineWidth = 1;
+	ctx.stroke();
+}
+
+function test() {
+	let a = timerFn(ups, 1000/60);
+	a.start();
+}
+
+
+// function --> Integer --> Object
+// call fn 
+
+function timerFn(fn, time) {
 
 	let id;
-	let init = () => { id = setInterval(fn, time)} ;
-	let stop = () => { clearInterval(id) };
+	let start = () => { id = setInterval(fn, time)} ;
+	let stop = () => { clearInterval(id)};
 	return {
-		init: init,
+		start: start,
 		stop: stop
 	}
 }
 
+$('textarea').value = ds;
 
-//////////////////
+
+////////////////////////////////////
 // load-image
-//////////////////
+////////////////////////////////////
 
 
 // listen event 'change' on imgBtn (input[type=file])
@@ -346,7 +393,7 @@ function setup(fn, time) {
 
 	function drawImg(img) {
 		let size = fitSize(getSize(img),getSize(imgBox));
-		let canvas = document.createElement('canvas');
+		canvas = document.createElement('canvas');
 		let ctx =  canvas.getContext('2d');
 		ctx.canvas.width = size.w;
 		ctx.canvas.height = size.h;
@@ -354,8 +401,75 @@ function setup(fn, time) {
 		imgBox.innerHTML = '';
 		canvas.className += 'center';
 		imgBox.appendChild(canvas);
+		ttt();
 	}
+function ttt(){
 
+	let over = false;
+
+  document.addEventListener('mousemove', function(e){
+  	let size = canvas.getBoundingClientRect();
+  	if (over) {
+  		ds.push({
+  			x: e.clientX - Math.floor(size.left),
+  			y: e.clientY - Math.floor(size.top)
+  		});
+  		$('textarea').value += ds[ds.length-1] + '\n';
+  		$('#x').value = e.clientX - Math.floor(size.left);
+  		$('#y').value = e.clientY - Math.floor(size.top);
+  	}
+  });
+
+
+  $('canvas').addEventListener('mouseover', function(){
+	  over = true;
+	  this.style.cursor = 'crosshair';
+ });
+
+ 	canvas.addEventListener('mouseout', function(){
+ 		over = false;
+ 		this.style.cursor = 'pointer';
+ 	});
+}
+
+function addClass(elm, name) {
+	elm.className += ` ${name}`;
+}
+
+function removeClass(elm, name) {
+	let cs = elm.className.split(' ');
+	console.log(cs);
+	if (cs !== undefined) {
+		elm.className = cs.filter(e => e !== name).join(' ');
+	}
+}
+
+function hasClass(elm, name) {
+	let cs = elm.className.split(' ');
+	if (cs !== undefined) {
+		return cs.some(e => e === name);
+	} else {
+		return false;
+	}
+}
+
+function toggleClass(elm, name) {
+	if (hasClass(elm, name)) {
+		removeClass(elm, name)
+	} else {
+		addClass(elm, name);
+	}
+}
+
+// document.forms.toolbox.addEventListener('click', function(e) {
+// 	let _forEach = Array.prototype.forEach;
+// 	let sibling = e.target.parentElement.children;
+// 	let cs = e.target.className.split(' ');
+// 	_forEach.call(sibling, function(e){
+// 		removeClass(e, 'current')
+// 	});
+// 	toggleClass(e.target, 'current')
+// });
   // window.addEventListener('onresize', )
 
 	// document.body.addEventListener('click', e => {
