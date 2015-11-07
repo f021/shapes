@@ -59,7 +59,7 @@
 			justify-content: center;
 		}
 
-		.img-container {
+		.img-box {
 			position: relative;
 			height: 100%;
 		}
@@ -69,18 +69,30 @@
 			text-align: center;
 		}
 
-		.text, img {
+
+		.center {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+
+		.text, .error, img {
 			position:absolute;
 			top: 50%;
 			left: 50%;
 			transform: translate(-50%, -50%);
 		}
 
-		.img-container h1 {
+		.img-box {
+			position: relative;
+		}
+
+		.img-box h1 {
 			padding-left: 10%;
 		}
 
-		.img-container p {
+		.img-box p {
 			padding-left: 10%;
 		}
 	
@@ -156,13 +168,13 @@
 
 		<section id="draw">
 			<div class="partout">
-				<div class="img-container">
+				<div class="img-box">
 					<div class="text">
 						<h1>Hello!</h1>
 						<p>choose file, make shapes, create with p5.js</p>
 						</div>
-				</div><!--.img-container-->
-			</div><!--.img--wrapper-->
+				</div><!--.img-box-->
+			</div><!--.img-wrapper-->
 		</section><!--#draw-->
 
 
@@ -204,11 +216,15 @@
 
 	"use strict"
 
-	const imgField = $('.img-container');
+	const error = '<h1>error</h1><p>I\'m understand only img file types...</p>';
+
+	const imgBox = $('.img-box');
 	const imgBtn = $('#file');
 
 	const w = window.innerWidth;
 	const h = window.innerHeight;
+
+	let img;
 
 	const as = [];
 
@@ -218,13 +234,6 @@
 
 	function wr(){
 		console.log(as);
-	}
-
-	function shape() {
-		beginShape();
-		// vertex(as[0][0], as[0][1]);
-		as.forEach(a => { vertex(a.x, a.y) });
-		endShape();
 	}
 
 	// function setup() {
@@ -238,35 +247,114 @@
 	// 	shape();
 	// }
 
-	imgBtn.addEventListener('change', e => {
-		
-		let file = e.target.files[0];
-		let imgType = /image/;
-		let img;
-		let size = {
-			w: imgField.clientWidth,
-			h: imgField.clientHeight
-		}
+function setup(fn, time) {
 
-		if ( !imgType.test(file.type) ) {
-			$('.text').innerHTML = '<h1>error</h1><p>I\'m understand only img file types...</p>';
+	let id;
+	let init = () => { id = setInterval(fn, time)} ;
+	let stop = () => { clearInterval(id) };
+	return {
+		init: init,
+		stop: stop
+	}
+}
 
+
+//////////////////
+// load-image
+//////////////////
+
+
+// listen event 'change' on imgBtn (input[type=file])
+// onchange call handleFile
+
+	imgBtn.addEventListener('change', handleFile);
+
+// sendMsd :: string element --> null
+// remove all from element 'to', make new 'div', add class 'error'
+// add msg, put it inside element 'to'
+
+	function sendMsg(msg, to) {	
+		let err = document.createElement('div');
+		err.className += 'error';
+		err.innerHTML += msg;
+		imgBox.innerHTML = '';
+		imgBox.appendChild(err);
+	}
+
+// isImage :: string --> bool
+// return true if filetype image
+
+	function isImage(filetype) {
+		return /^image/.test(filetype);
+	}
+
+
+//  getSize :: element --> object
+//  return width and height of the element
+
+	function getSize(elm) {
+		if (elm.clientHeight){
+			return {
+				w: elm.clientWidth,
+				h: elm.clientHeight
+			}
 		} else {
+			return {
+				w: elm.width,
+				h: elm.height
+			}
+		}
+	}
 
-			img = document.createElement('img');
-			img.src = window.URL.createObjectURL(file);
-			
-			img.onload = function() {
-        window.URL.revokeObjectURL(this.src);
-        img.width = size.w;
-        if (img.height > size.h) {
-        	img.width -= (img.height - size.h) * (img.width / img.height);
-        }
-      };
-      imgField.innerHTML = "";
-      imgField.appendChild(img);
+// fitSize object --> object --> object
+// resize 'from' to fit in 'to'
+
+	function fitSize(from, to) {
+		let rate = from.w / from.h;
+		if (from.w > to.w) {
+			from.h -= (from.w - to.w) / rate;
+		} else {
+			from.h += (to.w - from.w) / rate;
+		}
+		from.w = to.w;	
+		if (from.h > to.h) {
+			from.w -= (from.h - to.h) * rate;
+			from.h -= from.h - to.h;
+		}	
+		from.w = Math.ceil(from.w);
+		from.h = Math.ceil(from.h);
+		return from;
+	}
+
+// handleFile event --> img
+// if event 'change' on input[type=file]
+// if filetype image make new image and add to canvas
+
+	function handleFile() {		
+		let file = this.files[0];
+		if ( !isImage(file.type) ) {
+			sendMsg(error, imgBox);
+		} else {
+			img = new Image();
+			img.src = window.URL.createObjectURL(file);			
+			img.onload = function(){
+				window.URL.revokeObjectURL(this.src);
+        drawImg(this);
+			}
     }
-  });
+  }
+
+	function drawImg(img) {
+		let size = fitSize(getSize(img),getSize(imgBox));
+		let canvas = document.createElement('canvas');
+		let ctx =  canvas.getContext('2d');
+		ctx.canvas.width = size.w;
+		ctx.canvas.height = size.h;
+		ctx.drawImage(img, 0,0, size.w, size.h);
+		imgBox.innerHTML = '';
+		canvas.className += 'center';
+		imgBox.appendChild(canvas);
+	}
 
   // window.addEventListener('onresize', )
 
@@ -274,6 +362,7 @@
 	// 	console.log(e);
 	// 	as.push({x:e.clientX, y: e.clientY});
 	// });
+
 
 	</script>
 </body>
