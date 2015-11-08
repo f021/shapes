@@ -23,7 +23,8 @@
     }
 
     fieldset {
-      border-top: 5px solid green;
+      /*border-top: 5px solid green;*/
+      /*border: 1px solid black;*/
     }
 
     textarea {
@@ -66,18 +67,10 @@
 
     legend {
       font-size:.5em;
-      text-align: center;
+      /*text-align: center;*/
     }
 
-
-    .center {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .text, .error, img {
+    .center, .text, .error, img {
       position:absolute;
       top: 50%;
       left: 50%;
@@ -228,30 +221,44 @@
   "use strict"
 
   const error = '<h1>Hey</h1><p>I\'m understand only img file types...</p>';
-
+  const newPoint = true;
   const imgBox = document.querySelector('.img-box');
   const imgBtn = document.querySelector('#file');
+
   const history = (observe) => {
     const arr = [];
-    const undo = () => {arr.push(observe.pop())};
-    const redo = () => {observe.push(arr.pop())};
+    const undo = () => { arr.push(observe.pop()) };
+    const redo = () => { observe.push(arr.pop()) };
     return {
       undo: undo,
       redo: redo
     }
   };
 
-  const shapes = {
+  const point = (position) => ({
+    add: () => console.log(position.x, position.y)
+  });
+
+  const paths = {
     line: {
       method: 'lineTo',
       p5js: 'vertex',
-      len: 2
+      arg: [],
+      anchor: 1
     },
     bezier: {
       method: 'bezierCurveTo',
       p5js: 'bezierVertex',
-      len: 6
-    }
+      arg: [],
+      anchor: 2
+    },
+    start: {
+      method: 'moveTo',
+      p5js: 'vertex',
+      anchor: 1,
+      arg: []
+    },
+    test: function() {console.log(this.a)}
   }
 
   const line = {
@@ -272,6 +279,15 @@
     return document.querySelector(elm);
   }
   test();
+
+  const scene = () => {
+    let ds = [];
+
+    return {
+      render: render,
+      ds
+    }
+  }
 
 function draw() {
   
@@ -311,8 +327,8 @@ function addPoint(x,y) {
 function timerFn(fn, ms) {
 
   let id;
-  let start = () => { id = setInterval(fn, ms)} ;
-  let stop = () => { clearInterval(id)};
+  const start = () => { id = setInterval(fn, ms)} ;
+  const stop = () => { clearInterval(id)};
   return {
     start: start,
     stop: stop
@@ -372,20 +388,27 @@ function timerFn(fn, ms) {
 // resize 'a' to fit in 'b'
 
   function fitSize(a, b) {
+
     let rate = a.w / a.h;
+
     if (a.w > b.w) {
       a.h -= (a.w - b.w) / rate;
     } else {
       a.h += (b.w - a.w) / rate;
     }
+
     a.w = b.w;  
+    
     if (a.h > b.h) {
       a.w -= (a.h - b.h) * rate;
       a.h -= a.h - b.h;
     } 
+    
     a.w = Math.ceil(a.w);
     a.h = Math.ceil(a.h);
+    
     return a;
+  
   }
 
 // handleFile event --> img
@@ -401,7 +424,7 @@ function timerFn(fn, ms) {
       img.src = window.URL.createObjectURL(file);     
       img.onload = function(){
         window.URL.revokeObjectURL(this.src);
-        drawImg(this);
+        drawImg(this); // when img loaded... put in canvas
       }
     }
   }
@@ -419,14 +442,20 @@ function timerFn(fn, ms) {
     mouseXY();
   }
 
+
+
+
+  canvas.addEventListener('click', whoami);
+
 ////////////////////////////////////////////////
 
 
 // mouseXY
 // when mouse over canvas
 // get mouse position
-// update form coordinates values
+// update coordinates values
 // change cursor style
+// event canvas.onclick 
 
 function mouseXY(){
 
@@ -440,10 +469,6 @@ function mouseXY(){
       x.value = e.clientX - Math.floor(size.left);
       y.value = e.clientY - Math.floor(size.top);
     }
-  });
-
-  canvas.addEventListener('click', () => {
-    addPoint(x.value, y.value);
   });
 
   canvas.addEventListener('mouseover', function(){
