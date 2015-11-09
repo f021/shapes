@@ -122,8 +122,11 @@
 
     .partout {
       height: 100%;
-      border: 5px dashed lightgrey;
       padding: 5%;
+    }
+
+    .dashed-border {
+      border: 5px dashed lightgrey;
     }
 
     .radio label {
@@ -133,6 +136,11 @@
     .green {
       background-color: green;
     }
+
+    .hide {
+      display: none;
+    }
+
 
   </style>
 </head>
@@ -155,14 +163,14 @@
       <form name="history">
         <button type="button" name="undo" disabled>undo</button>
         <button type="button" name="history"disabled>redo</button>
-        <button type="button" name="clear" disabled>clear all</button>
+        <button type="button" name="clear">clear</button>
         <button type="button" name="copy" disabled>cmd+c</button>
         <button type="button" name="save" disabled>save</button>
       </form><!-- history -->
     </section><!--#output-->
 
     <section id="draw">
-      <div class="partout">
+      <div class="partout dashed-border">
         <div class="img-box">
           <div class="text">
             <h1>Hello!</h1>
@@ -174,6 +182,17 @@
 
 
     <section id="toolbox">
+        <form class="hide" name="map">
+          <fieldset>
+            <legend>Map</legend>
+            <label><input type="range" name="offsetX" value="0">x</input>x:</label>
+            <label><input type="range" name="offsetY" value="0">y</input>y:</label>
+            <label><input type="range" name="zoom" min="1" max="3" step="0.1" value="1"></input>zoom:</label>
+            <button type="button" name="reset">reset</button>
+            <label><input type="checkbox" name="showImage" checked>show image</label>
+            <label><input type="checkbox" name="showShape" checked>show shapes</label>
+          </fieldset>
+        </form>
         <form name="toolbox">
           <fieldset name="file">
             <legend>File</legend>
@@ -193,15 +212,8 @@
             <label><input type="radio" name="shape" value="line" checked>line</label>
             <label><input type="radio" name="shape" value="bezier">bezier</label>
             <!-- <label><input type="radio" name="shape" value="curve">curve</label> -->
-            <button type="button" name="start">new</button>
+            <button type="button" name="new">new path</button>
           </fieldset>
-          <fieldset name="position">
-            <legend>Align shape:</legend>
-            <label><input type="radio" name="valign" name="top">top</label>
-            <label><input type="radio" name="align" name="left">left</label>
-            <label><input type="radio" name="align" name="right">right</label>
-            <label><input type="radio" name="valign" name="bottom">bottom</label>
-          </fieldset><!--position-->
         </form><!--toolbar-->
       <form name="coordinates">
         <fieldset>
@@ -213,102 +225,95 @@
     </seciton><!--#toolbar-->
 
 </div><!--.wrapper-->
-<script src='js/p5.js'></script>
+<!-- <script src='js/p5.js'></script> -->
   <!-- // <script src='js/main.js'></script> -->
 
 <script>
 
   "use strict"
 
+  let over = false;  // mouse over canvas
   const error = '<h1>Hey</h1><p>I\'m understand only img file types...</p>';
-  const newPoint = true;
   const imgBox = document.querySelector('.img-box');
   const imgBtn = document.querySelector('#file');
-
-  const history = (observe) => {
-    const arr = [];
-    const undo = () => { arr.push(observe.pop()) };
-    const redo = () => { observe.push(arr.pop()) };
-    return {
-      undo: undo,
-      redo: redo
-    }
-  };
-
-  const point = (position) => ({
-    add: () => console.log(position.x, position.y)
-  });
-
-  const paths = {
-    line: {
-      method: 'lineTo',
-      p5js: 'vertex',
-      arg: [],
-      anchor: 1
-    },
-    bezier: {
-      method: 'bezierCurveTo',
-      p5js: 'bezierVertex',
-      arg: [],
-      anchor: 2
-    },
-    start: {
-      method: 'moveTo',
-      p5js: 'vertex',
-      anchor: 1,
-      arg: []
-    },
-    test: function() {console.log(this.a)}
+  let click;
+  let prevClick;
+  let w = window.innerWidth;
+  let h = window.innerHeight;
+  let ds = [[]]; // shapes list
+  let tmp = {};
+  let mouseX;
+  let mouseY;
+  let map = {
+    offsetX: 0,
+    offsetY: 0,
+    zoom: 1,
+    showImage: true,
+    showShape: true
   }
-
-  const line = {
-
-  };
-
-
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-
   let img;
   let canvas;
   let ctx;
+  let x = document.forms.coordinates.elements.x;
+  let y = document.forms.coordinates.elements.y;
 
-  const ds = []; // shapes list
+  const draw1 = state => {ctx[state.type].apply(ctx, state.param)};
 
   function $(elm){ 
     return document.querySelector(elm);
   }
-  test();
+  
+test();
 
-  const scene = () => {
-    let ds = [];
-
-    return {
-      render: render,
-      ds
-    }
+  const btnEvents = {
+    new: () => { ds.push([])},
+    clear: () => { ds = [[]]}
   }
+
+// str --> [element,..]
+// get value of checked elements by name
+// css selector input[name=name]:checked
+
+const checkedIn = name => document.querySelector(`input[name=${name}]:checked`).value;
+
+function render(){
+  ds.forEach(arr => { 
+    ctx.beginPath();
+    arr.forEach(obj => {draw1(obj)})
+    ctx.strokeStyle = 'green';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.closePath();
+  });
+}
+
+function renderTmp() {
+  ctx.beginPath();
+    if (tmp.type === undefined && over) {
+      ctx.moveTo(click.x, click.y)
+      ctx.lineTo(x.value, y.value);
+    } else {
+      ctx.moveTo(prevClick.x, prevClick.y);
+      tmp.param = [mouseX,mouseY].concat(tmp.param.slice(2));
+      draw1(tmp);
+    }
+  ctx.strokeStyle = 'red';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
 
 function draw() {
   
-  let x = document.forms.coordinates.elements.x;
-  let y = document.forms.coordinates.elements.y;
-  let ctx = canvas.getContext('2d');
+  ctx = canvas.getContext('2d');
   ctx.clearRect(0,0,canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  // console.log($('#x'));
-  ctx.beginPath();
-  ctx.moveTo(ds[0].x, ds[0].y);
-  ds.slice(1).forEach((d)=>{ctx.lineTo(d[0], d[1])});
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = "white";
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(ds[ds.length-1][0], ds[ds.length-1][1]);
-  ctx.bezierCurveTo(ds[ds.length-1][0], ds[ds.length-1][1], x.value, y.value, x.value,y.value);
-  ctx.strokeStyle = "red";
-  ctx.stroke();
-  // ds.pop();
+  if (map.showImage){
+  ctx.drawImage(img, map.offsetX*map.zoom, map.offsetY*map.zoom, canvas.width*map.zoom, canvas.height*map.zoom);}
+  if (map.showShape) {
+  render();
+  if (last(ds).length > 0) {
+  renderTmp();
+  }
+}
 }
 
 
@@ -317,9 +322,6 @@ function test() {
   a.start();
 }
 
-function addPoint(x,y) {
-  ds.push([x,y]);
-}
 
 // function --> Integer --> Object
 // call fn every ms
@@ -435,17 +437,54 @@ function timerFn(fn, ms) {
     let ctx =  canvas.getContext('2d');
     ctx.canvas.width = size.w;
     ctx.canvas.height = size.h;
-    ctx.drawImage(img, 0,0, size.w, size.h);
+    ctx.drawImage(img, 0, 0, size.w, size.h);
     imgBox.innerHTML = '';
     canvas.className += 'center';
     imgBox.appendChild(canvas);
+    document.forms.map.style.display = "block";
+    setRange('input[name=offsetX]', size.w);
+    setRange('input[name=offsetY]', size.h);
     mouseXY();
   }
 
+  function setRange(str, value){
+    console.log(value)
+    let elm = document.querySelector(str);
+    elm.min = -value;
+    elm.max = value;
+    console.log(elm);
+  }
+
+  const last = arr => arr[arr.length - 1];
+
+  function whoami (){
+    prevClick = click;
+    click = {x: x.value, y: y.value };
+    let arr = last(ds); // get last elm in ds
+    if (!arr.length) {  // if arr empty
+      arr.push({ type: 'moveTo', param: [x.value, y.value] });
+    } else {
+      if (checkedIn('shape') === 'bezier'){
+        if (tmp.type === undefined) {
+          tmp = {
+            type: 'quadraticCurveTo',
+            param: [prevClick.x, prevClick.y, click.x, click.y]
+          };
+        } else {
+          arr.push(tmp);
+          click = prevClick;
+          tmp = {};
+        };
+      } else {
+      arr.push({
+        type: 'lineTo',
+        param: [x.value, y.value]
+      });
+      }
+    }
+  }
 
 
-
-  canvas.addEventListener('click', whoami);
 
 ////////////////////////////////////////////////
 
@@ -459,15 +498,20 @@ function timerFn(fn, ms) {
 
 function mouseXY(){
 
-  let over = false;  // mouse over canvas
-  let x = document.forms.coordinates.elements.x;
-  let y = document.forms.coordinates.elements.y;
 
-  document.addEventListener('mousemove', function(e){
+  document.addEventListener('mousemove', e => {
     let size = canvas.getBoundingClientRect();
+    mouseX = e.clientX - Math.floor(size.left);
+    mouseY = e.clientY - Math.floor(size.top);
     if (over) {
-      x.value = e.clientX - Math.floor(size.left);
-      y.value = e.clientY - Math.floor(size.top);
+      x.value = mouseX;
+      y.value = mouseY;
+    }
+  });
+
+  canvas.addEventListener('click', function(){
+    if (over) {
+      whoami();
     }
   });
 
@@ -485,36 +529,28 @@ function mouseXY(){
 }
 
 
-//////////////
-
-function addClass(elm, name) {
-  elm.className += ` ${name}`;
+for (let i=0; i < document.forms.length; i++) {
+  document.forms[i].addEventListener('click', e => {
+    // console.log(e.target.name);
+    if (e.target.type === 'button') {
+      btnEvents[e.target.name]();
+    }
+  });
 }
 
-function removeClass(elm, name) {
-  let cs = elm.className.split(' ');
-  console.log(cs);
-  if (cs !== undefined) {
-    elm.className = cs.filter(e => e !== name).join(' ');
-  }
-}
 
-function hasClass(elm, name) {
-  let cs = elm.className.split(' ');
-  if (cs !== undefined) {
-    return cs.some(e => e === name);
-  } else {
-    return false;
-  }
-}
+document.body.addEventListener('input', e => {
+      if (e.target.type === 'range') {
+        map[e.target.name] = e.target.value;
+      }
+    });
 
-function toggleClass(elm, name) {
-  if (hasClass(elm, name)) {
-    removeClass(elm, name)
-  } else {
-    addClass(elm, name);
-  }
-}
+document.body.addEventListener('change', e => {
+      if (e.target.type === 'checkbox') {
+        // console.log(e.target.checked);
+        map[e.target.name] = e.target.checked;
+      }
+  });
 
   </script>
 </body>
