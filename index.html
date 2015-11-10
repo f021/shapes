@@ -230,6 +230,7 @@
             <label><input type="radio" name="shape" value="line" checked>line</label>
             <label><input type="radio" name="shape" value="bezier">bezier</label>
             <label><input type="radio" name="shape" value="curve">curve</label>
+            <label><input type="checkbox" name="closePath">close path</label>
             <button type="button" name="new">new path</button>
           </fieldset>
         </form><!--toolbar-->
@@ -291,10 +292,7 @@
         } 
       };
 
-      const shape = (state) => ({
-        last () {
-          return state.arr
-        },
+      const screen = (state) => ({
         drawRect () {
           state.arr.forEach(elm => elm.draw());
         },
@@ -309,7 +307,9 @@
           ctx.strokeStyle = 'blur';
           ctx.moveTo(state.arr[0].x, state.arr[0].y);
           state.arr.slice(1).forEach(elm => elm.path());
-          ctx.closePath();
+          if (_('closePath').checked) {
+            ctx.closePath();
+          }
           ctx.stroke();
         },
         seek (target) {
@@ -322,45 +322,15 @@
           if (!search.length) {
             return false;
           } else {
-          return search[0];
+            return search[0];
           }
         }
       });
 
-      const _arr = {
-        head () {
-          return this.arr[0];
-        },
-        last () {
-          return this.arr.slice(-1);
-        },
-        init () {
-          return this.arr.slice(0,-1);
-        },
-        tail () {
-          return this.arr.slice(1);
-        },
-        push (e) {
-          return this.arr.push(e);
-        },
-        pop () {
-          return this.arr.pop();
-        }
-      }
-
-      const array = (arr) => {
-        let state = {
-          arr: arr
-        }
-        return Object.assign(
-          Object.create(_arr),
-          state
-          );
-      };
-
-      const scene = shape({arr: []});
+      const scene = screen({arr:arr});
 
       const rect = {
+
         box () {
           return {
             left: this.x - this.size/2,
@@ -369,17 +339,20 @@
             bottom: this.y + this.size/2
           }
         },
+
         draw () {
           let r = this.box();
           ctx.fillStyle = this.color;
           ctx.fillRect(r.left, r.top, this.size, this.size);
           return this;
         },
+
         move (pos) {
           this.x = pos.x;
           this.y = pos.y;
           this.draw();
         },
+
         path () {
           ctx[this.type](this.x, this.y);
         }
@@ -398,12 +371,6 @@
           state
         );
       };
-
-
-      const bezier = (pos) => {
-
-      }
-
 
       const timerFn = (fn, ms) => {
         let id;
@@ -477,6 +444,11 @@
 
         canvas.addEventListener('mousemove', e => {
           mouse = mouseXY(e);
+          if (scene.seek(mouse)) {
+            canvas.style.cursor = 'pointer';
+          } else {
+            canvas.style.cursor = 'crosshair';
+          }
           _('x').value = mouse.x;
           _('y').value = mouse.y;
           _('rgb').value = pixelXY(mouse);
