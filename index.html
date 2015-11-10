@@ -256,6 +256,10 @@
       const $ = str => document.querySelector(str);
       const _ = str => $(`input[name=${str}]`);
       const imgBox = $('.img-box');
+      const who = (str) => [].filter.call(
+        document.querySelectorAll(`input[name=${str}]`), e =>
+          e.checked)[0].value;
+      
 
       const createCanvas = elm => {
         let canvas = document.createElement('canvas');
@@ -285,33 +289,66 @@
           let obj = createCanvas($('.partout'));
           canvas = obj.canvas;
           ctx = obj.ctx;
-                    addEventToCanvas();
+          listenCanvas();
         },
         launch () {
           timerFn(draw, 1000/60).start();
         } 
       };
 
+      const shapes = {
+        line(e) {
+          anchor(e);
+        },
+        bezier(e) {
+          bezer(e);
+        }
+      }
+
       const screen = (state) => ({
+
         drawRect () {
           state.arr.forEach(elm => elm.draw());
         },
-        add (elm) {
+
+        add (pos) {
+          let elm;
+          if (state.arr.length === 0) {
+            elm = anchor({x: pos.x, y: pos.y, type: 'moveTo'});
+          } else {
+            switch (who('shape')){
+              case 'line':
+                elm = anchor(pos);
+                break;
+              case 'bezier':
+                elm = bezier({
+                  x: pos.x,
+                  y: pos.y,
+                  sibling: state.arr.slice(-1)[0]
+                });
+                break;
+              default:
+                console.log('error...')
+              }
+            }
+          console.log('add new anchor... ', elm);
           state.arr.push(elm);
         },
+
         clear() {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
         },
+
         drawPath () {
           ctx.beginPath();
-          ctx.strokeStyle = 'blur';
-          ctx.moveTo(state.arr[0].x, state.arr[0].y);
-          state.arr.slice(1).forEach(elm => elm.path());
+          ctx.strokeStyle = 'black';
+          state.arr.forEach(elm => elm.path());
           if (_('closePath').checked) {
             ctx.closePath();
           }
           ctx.stroke();
         },
+
         seek (target) {
           let search = state.arr.filter(elm => 
             target.x >= elm.box().left &&
@@ -324,8 +361,30 @@
           } else {
             return search[0];
           }
+        },
+
+        line (target) {
+          let search;
+          for (let i = 1; i < state.arr.length; i++) {
+            if (Math.abs(len(state.arr[i],state.arr[i-1])
+                - len(state.arr[i], target)
+                - len(state.arr[i-1], target) 
+                ) < 0.5) {
+              console.log(state.arr[i]);
+              search = state.arr[i];
+            }
+          };
+          
+          if (search) {
+            return search;
+          } else {
+            return false;
+          };
         }
+
       });
+
+      const len = (a,b) => Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow (a.y - b.y, 2));
 
       const scene = screen({arr:arr});
 
@@ -353,8 +412,14 @@
           this.draw();
         },
 
+        curve (pos) {
+          this.px = pos.x;
+          this.py = pos.y;
+          this.draw();
+        },
+
         path () {
-          ctx[this.type](this.x, this.y);
+          ctx[this.type](this.px, this.py, this.x, this.y);
         }
       }
 
@@ -362,25 +427,77 @@
         let state = {
           x: pos.x,
           y: pos.y,
-          type: 'lineTo',
+          px: pos.px || pos.x,
+          py: pos.py || pos.y,
+          type: pos.type || 'quadraticCurveTo',
           size: 10,
-          color: '#ff0000'
+          color: pos.color || '#ff0000'
         };
+
         return Object.assign(
           Object.create(rect),
           state
         );
+
       };
 
+
+      const bezierCurve = {
+
+        draw () {
+          console.log(this);
+          this.main.draw();
+          this.first.draw();
+          this.second.draw();
+        },
+
+        // path        
+
+
+      };
+
+      const bezier = (pos) => {
+        let state = {
+          x:pos.x,
+          y:pos.y,
+          main: anchor({
+            x: pos.x,
+            y: pos.y
+          }),
+          sibling: pos.sibling,
+          first: anchor({
+            x: (pos.x + pos.sibling.x)/2,
+            y: (pos.y + pos.sibling.y)/2,
+            color: 'blue'
+          }),
+          second: anchor({
+            x: (pos.x + pos.sibling.x)/2,
+            y: (pos.y + pos.sibling.y)/2,
+            color: 'green'
+          }),
+          type: 'bezierCurveTo'
+        }
+
+        return Object.assign(
+          Object.create(bezierCurve),
+          state
+          );
+      }
+
+
+
       const timerFn = (fn, ms) => {
+
         let id;
-        const start = () => { id = setInterval(fn, ms)} ;
+        
+        const start = () => { id = setInterval(fn, ms)} ; //setInterval
         const stop = () => { clearInterval(id)};
+        
         return {
           start: start,
           stop: stop
         }
-      }
+      };
 
 
       const draw = () => {
@@ -388,13 +505,6 @@
         scene.drawPath();
         scene.drawRect();
       }
-
-      // const point = (state) => {
-      //   let point = Object.create(rect);
-      //   point.pos.x = state.x;
-      //   point.pos.y = state.y;
-      //   return { point };
-      // };
 
       document.body.addEventListener('click', e => {
         if (e.target.type === 'button') {
@@ -413,38 +523,45 @@
 
       const pixelXY = pos => ctx.getImageData(pos.x, pos.y, 1,1).data;
 
-      const addEventToCanvas = () => {
+      const listenCanvas = () => {
 
         let mouseOverCanvas = false;
         let mouse;
         let dragElm = null;
+        let dragLine = null;
+        let flag = true;
 
 
         canvas.addEventListener('click', e => {
-          if (!scene.seek(mouse)){
-            console.log('add new anchor');
-            scene.add(anchor(mouse));
+          if (dragElm || dragLine) {
+            dragElm = null;
+            dragLine = null;
           } else {
-            console.log('i have one...');
-          }
+            scene.add(anchor(mouse));
+          } 
+
         });
 
         canvas.addEventListener('mousedown', () => {
           let e = scene.seek(mouse);
+          let l = scene.line(mouse);
           if (e) {
             dragElm = e;
+          } else {
+            if (l) {
+              dragLine = l;
+            }
           }
         });
 
         canvas.addEventListener('mouseup', () => {
-          if (dragElm) {
-            dragElm = null;
-          }
+
         });
 
         canvas.addEventListener('mousemove', e => {
           mouse = mouseXY(e);
-          if (scene.seek(mouse)) {
+                  
+          if (scene.seek(mouse) || scene.line(mouse)) {
             canvas.style.cursor = 'pointer';
           } else {
             canvas.style.cursor = 'crosshair';
@@ -454,6 +571,9 @@
           _('rgb').value = pixelXY(mouse);
           if (dragElm !== null) {
             dragElm.move(mouse);
+          }
+          if (dragLine !== null) {
+            dragLine.curve(mouse);
           }
         });
 
