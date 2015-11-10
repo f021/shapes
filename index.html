@@ -214,6 +214,7 @@
             <legend>File</legend>
             <input type="file" id="file">
             <button type='button' name='create'>create canvas</button>
+            <button type="button" name="launch">launch</button>
           </fieldset>
           <fieldset name="primitives">
             <legend>2D primitives</legend>
@@ -249,6 +250,7 @@
 
 
       let canvas, ctx;
+      let arr = []; ///// -->scene
 
       const $ = str => document.querySelector(str);
       const _ = str => $(`input[name=${str}]`);
@@ -285,40 +287,109 @@
                     addEventToCanvas();
         },
         launch () {
-          addEventToCanvas();
+          timerFn(draw, 1000/60).start();
         } 
       };
 
-      const scene = (state) => ({
-        draw () {
+      const shape = (state) => ({
+        last () {
+          return state.arr
+        },
+        drawRect () {
           state.arr.forEach(elm => elm.draw());
         },
-        add(elm) {
+        add (elm) {
           state.arr.push(elm);
+        },
+        clear() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        },
+        drawPath () {
+          ctx.beginPath();
+          ctx.strokeStyle = 'blur';
+          ctx.moveTo(state.arr[0].x, state.arr[0].y);
+          state.arr.slice(1).forEach(elm => elm.path());
+          ctx.closePath();
+          ctx.stroke();
+        },
+        seek (target) {
+          let search = state.arr.filter(elm => 
+            target.x >= elm.box().left &&
+            target.x <= elm.box().right && 
+            target.y >= elm.box().top &&
+            target.y <= elm.box().bottom
+          );
+          if (!search.length) {
+            return false;
+          } else {
+          return search[0];
+          }
         }
       });
 
-      const rect = {
-
-        draw () {
-          ctx.fillStyle = this.color;
-          ctx.fillRect(this.x - this.size, this.y - this.size,
-                      this.size, this.size);
-          return this;
+      const _arr = {
+        head () {
+          return this.arr[0];
         },
-
-        move (pos) {
-          console.log(pos);
-          this.x = pos.x;
-          this.y = pos.y;
-          this.draw();
+        last () {
+          return this.arr.slice(-1);
+        },
+        init () {
+          return this.arr.slice(0,-1);
+        },
+        tail () {
+          return this.arr.slice(1);
+        },
+        push (e) {
+          return this.arr.push(e);
+        },
+        pop () {
+          return this.arr.pop();
         }
       }
 
-      const anchor = (obj) => {
+      const array = (arr) => {
         let state = {
-          x: obj.x || 0,
-          y: obj.y || 0,
+          arr: arr
+        }
+        return Object.assign(
+          Object.create(_arr),
+          state
+          );
+      };
+
+      const scene = shape({arr: []});
+
+      const rect = {
+        box () {
+          return {
+            left: this.x - this.size/2,
+            right: this.x + this.size/2,
+            top: this.y - this.size/2,
+            bottom: this.y + this.size/2
+          }
+        },
+        draw () {
+          let r = this.box();
+          ctx.fillStyle = this.color;
+          ctx.fillRect(r.left, r.top, this.size, this.size);
+          return this;
+        },
+        move (pos) {
+          this.x = pos.x;
+          this.y = pos.y;
+          this.draw();
+        },
+        path () {
+          ctx[this.type](this.x, this.y);
+        }
+      }
+
+      const anchor = (pos) => {
+        let state = {
+          x: pos.x,
+          y: pos.y,
+          type: 'lineTo',
           size: 10,
           color: '#ff0000'
         };
@@ -328,8 +399,27 @@
         );
       };
 
-      const test = () => {
 
+      const bezier = (pos) => {
+
+      }
+
+
+      const timerFn = (fn, ms) => {
+        let id;
+        const start = () => { id = setInterval(fn, ms)} ;
+        const stop = () => { clearInterval(id)};
+        return {
+          start: start,
+          stop: stop
+        }
+      }
+
+
+      const draw = () => {
+        scene.clear();
+        scene.drawPath();
+        scene.drawRect();
       }
 
       // const point = (state) => {
@@ -353,25 +443,53 @@
         };
       };
 
-      const addEventToCanvas = _ => {
+
+      const pixelXY = pos => ctx.getImageData(pos.x, pos.y, 1,1).data;
+
+      const addEventToCanvas = () => {
 
         let mouseOverCanvas = false;
-        let a = anchor({x:10,y:19});
+        let mouse;
+        let dragElm = null;
 
-        canvas.addEventListener('mousedown', e => {
-          let mouse = mouseXY(e);
+
+        canvas.addEventListener('click', e => {
+          if (!scene.seek(mouse)){
+            console.log('add new anchor');
+            scene.add(anchor(mouse));
+          } else {
+            console.log('i have one...');
+          }
+        });
+
+        canvas.addEventListener('mousedown', () => {
+          let e = scene.seek(mouse);
+          if (e) {
+            dragElm = e;
+          }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+          if (dragElm) {
+            dragElm = null;
+          }
         });
 
         canvas.addEventListener('mousemove', e => {
-          console.log(mouseXY(e));
-          a.move(mouseXY(e));
+          mouse = mouseXY(e);
+          _('x').value = mouse.x;
+          _('y').value = mouse.y;
+          _('rgb').value = pixelXY(mouse);
+          if (dragElm !== null) {
+            dragElm.move(mouse);
+          }
         });
 
-        canvas.addEventListener('mouseover', e => {
+        canvas.addEventListener('mouseover', () => {
           mouseOverCanvas = true;
         });
 
-        canvas.addEventListener('mouseout', function(){
+        canvas.addEventListener('mouseout', () => {
           mouseOverCanvas = false;
         });
     }
