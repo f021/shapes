@@ -60,11 +60,6 @@
       justify-content: center;
     }
 
-    .img-box {
-      position: relative;
-      height: 100%;
-    }
-
     legend {
       font-size:.5em;
       /*text-align: center;*/
@@ -78,6 +73,7 @@
     }
 
     .img-box {
+      height: 100%;
       position: relative;
     }
 
@@ -122,7 +118,8 @@
 
     .partout {
       height: 100%;
-      padding: 5%;
+      padding: 1%;
+      /*background-color: orange;*/
     }
 
     .dashed-border {
@@ -139,6 +136,14 @@
 
     .hide {
       display: none;
+    }
+
+    label {
+      display: box;
+    }
+
+    #zoom {
+      width: 100%;
     }
 
 
@@ -164,7 +169,7 @@
         <button type="button" name="undo" disabled>undo</button>
         <button type="button" name="history"disabled>redo</button>
         <button type="button" name="clear">clear</button>
-        <button type="button" name="copy" disabled>cmd+c</button>
+        <button type="button" name="copy" disabled>copy to clipboar</button>
         <button type="button" name="save" disabled>save</button>
       </form><!-- history -->
     </section><!--#output-->
@@ -178,19 +183,26 @@
             </div>
         </div><!--.img-box-->
       </div><!--.img-wrapper-->
+      <form name="coordinates">
+        <fieldset>
+          <legend>Coordinates/Colors</legend>
+                <label>x: <input type="text" name="x" disabled></label>
+                <label>y: <input type="text" name="y" disabled></label>
+                <label>rgb: <input type="text" name="rgb" disabled></label>
+            </fieldset>
+          </form><!--coordinates-->
     </section><!--#draw-->
 
 
     <section id="toolbox">
+                <canvas id="zoom"></canvas>
         <form class="hide" name="map">
           <fieldset>
             <legend>Map</legend>
-            <label><input type="range" name="offsetX" value="0">x</input>x:</label>
-            <label><input type="range" name="offsetY" value="0">y</input>y:</label>
-            <label><input type="range" name="zoom" min="1" max="3" step="0.1" value="1"></input>zoom:</label>
-            <button type="button" name="reset">reset</button>
-            <label><input type="checkbox" name="showImage" checked>show image</label>
-            <label><input type="checkbox" name="showShape" checked>show shapes</label>
+            <label>x:<input type="range" name="offsetX" value="0"></label>
+            <label>y:<input type="range" name="offsetY" value="0"></label>
+            <label>zoom:<input type="range" name="zoom" min="1" max="3" step="0.1" value="1"></label>
+            <button type="button" name="reset">reset map</button>
           </fieldset>
         </form>
         <form name="toolbox">
@@ -215,13 +227,13 @@
             <button type="button" name="new">new path</button>
           </fieldset>
         </form><!--toolbar-->
-      <form name="coordinates">
+        <form>
         <fieldset>
-          <legend>Coordinates</legend>
-            <label>x: <input type="text" name="x" id="x" disabled></label>
-            <label>y: <input type="text" name="y" id="y" disabled></label>
+          <legend>show/hide<legend>
+          <label><input type="checkbox" name="showImage" checked>image</label>
+          <label><input type="checkbox" name="showShape" checked>shapes</label>
         </fieldset>
-      </form><!--coordinates-->
+      </form>
     </seciton><!--#toolbar-->
 
 </div><!--.wrapper-->
@@ -236,38 +248,46 @@
   const error = '<h1>Hey</h1><p>I\'m understand only img file types...</p>';
   const imgBox = document.querySelector('.img-box');
   const imgBtn = document.querySelector('#file');
-  let click;
-  let prevClick;
+  let click, prevClick;
   let w = window.innerWidth;
   let h = window.innerHeight;
   let ds = [[]]; // shapes list
   let tmp = {};
-  let mouseX;
-  let mouseY;
-  let map = {
-    offsetX: 0,
-    offsetY: 0,
-    zoom: 1,
-    showImage: true,
-    showShape: true
-  }
-  let img;
-  let canvas;
-  let ctx;
+  let mouseX, mouseY;
+  let img, canvas, ctx;
   let x = document.forms.coordinates.elements.x;
   let y = document.forms.coordinates.elements.y;
+  let zoom;
 
-  const draw1 = state => {ctx[state.type].apply(ctx, state.param)};
+  const drawPoint = state => {ctx[state.type].apply(ctx, state.param)};
 
   function $(elm){ 
     return document.querySelector(elm);
   }
   
-test();
+  test();
+
+  const setAttribute = (elm, atr, val) => { elm[atr] = val; };
+
+  const getAttribute = (elm, atr) => elm[atr];
+
+  const map = () => ({
+    offsetX: getAttribute($('input[name=offsetX]'), 'value'),
+    offsetY: getAttribute($('input[name=offsetY]'), 'value'),
+    zoom: getAttribute($('input[name=zoom]'), 'value'),
+    showImage: getAttribute($('input[name=showImage]'), 'checked'),
+    showShape: getAttribute($('input[name=showShape]'), 'checked')
+  });
 
   const btnEvents = {
     new: () => { ds.push([])},
-    clear: () => { ds = [[]]}
+    clear: () => { ds = [[]]},
+    reset: () => {
+      setAttribute($('input[name=offsetX]'), 'value', 0);
+      setAttribute($('input[name=offsetY]'), 'value', 0);
+      setAttribute($('input[name=zoom]'), 'value', 1);
+    },
+
   }
 
 // str --> [element,..]
@@ -279,9 +299,9 @@ const checkedIn = name => document.querySelector(`input[name=${name}]:checked`).
 function render(){
   ds.forEach(arr => { 
     ctx.beginPath();
-    arr.forEach(obj => {draw1(obj)})
+    arr.forEach(obj => {drawPoint(obj)})
     ctx.strokeStyle = 'green';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = .5;
     ctx.stroke();
     ctx.closePath();
   });
@@ -295,26 +315,27 @@ function renderTmp() {
     } else {
       ctx.moveTo(prevClick.x, prevClick.y);
       tmp.param = [mouseX,mouseY].concat(tmp.param.slice(2));
-      draw1(tmp);
+      drawPoint(tmp);
     }
   ctx.strokeStyle = 'red';
-  ctx.lineWidth = 1;
+  ctx.lineWidth = .5;
   ctx.stroke();
 }
 
 function draw() {
-  
+  let d = map();
   ctx = canvas.getContext('2d');
   ctx.clearRect(0,0,canvas.width, canvas.height);
-  if (map.showImage){
-  ctx.drawImage(img, map.offsetX*map.zoom, map.offsetY*map.zoom, canvas.width*map.zoom, canvas.height*map.zoom);}
-  if (map.showShape) {
-  render();
+  if (d.showImage){
+    ctx.drawImage(img, d.offsetX*d.zoom, d.offsetY*d.zoom, canvas.width*d.zoom, canvas.height*d.zoom);}
+  if (d.showShape) {
+    render();
   if (last(ds).length > 0) {
-  renderTmp();
+    renderTmp();
   }
 }
 }
+
 
 
 function test() {
@@ -390,25 +411,19 @@ function timerFn(fn, ms) {
 // resize 'a' to fit in 'b'
 
   function fitSize(a, b) {
-
     let rate = a.w / a.h;
-
     if (a.w > b.w) {
       a.h -= (a.w - b.w) / rate;
     } else {
       a.h += (b.w - a.w) / rate;
     }
-
     a.w = b.w;  
-    
     if (a.h > b.h) {
       a.w -= (a.h - b.h) * rate;
       a.h -= a.h - b.h;
     } 
-    
     a.w = Math.ceil(a.w);
-    a.h = Math.ceil(a.h);
-    
+    a.h = Math.ceil(a.h);    
     return a;
   
   }
@@ -426,7 +441,7 @@ function timerFn(fn, ms) {
       img.src = window.URL.createObjectURL(file);     
       img.onload = function(){
         window.URL.revokeObjectURL(this.src);
-        drawImg(this); // when img loaded... put in canvas
+        drawImg(this); // when img loaded... put it in canvas
       }
     }
   }
@@ -434,7 +449,7 @@ function timerFn(fn, ms) {
   function drawImg(img) {
     let size = fitSize(getSize(img),getSize(imgBox));
     canvas = document.createElement('canvas');
-    let ctx =  canvas.getContext('2d');
+    ctx =  canvas.getContext('2d');
     ctx.canvas.width = size.w;
     ctx.canvas.height = size.h;
     ctx.drawImage(img, 0, 0, size.w, size.h);
@@ -444,6 +459,7 @@ function timerFn(fn, ms) {
     document.forms.map.style.display = "block";
     setRange('input[name=offsetX]', size.w);
     setRange('input[name=offsetY]', size.h);
+    zoom = $('#zoom').getContext('2d');
     mouseXY();
   }
 
@@ -501,11 +517,21 @@ function mouseXY(){
 
   document.addEventListener('mousemove', e => {
     let size = canvas.getBoundingClientRect();
+    let pixel;
+    // let imgData;
     mouseX = e.clientX - Math.floor(size.left);
     mouseY = e.clientY - Math.floor(size.top);
+    pixel = ctx.getImageData(mouseX, mouseY, 1,1).data;
+    // imgData = ctx.getImageData(mouseX,mouseY, 10,10);
     if (over) {
       x.value = mouseX;
       y.value = mouseY;
+      $('input[name=rgb').value = pixel;
+      $('body').style.backgroundColor = `rgba(${pixel})`;
+      // console.log(canvas);
+      // console.log(zoom);
+      // zoom.putImageData(imgData,30,30);
+        
     }
   });
 
@@ -539,18 +565,18 @@ for (let i=0; i < document.forms.length; i++) {
 }
 
 
-document.body.addEventListener('input', e => {
-      if (e.target.type === 'range') {
-        map[e.target.name] = e.target.value;
-      }
-    });
+// document.body.addEventListener('input', e => {
+//       if (e.target.type === 'range') {
+//         map[e.target.name] = e.target.value;
+//       }
+//     });
 
-document.body.addEventListener('change', e => {
-      if (e.target.type === 'checkbox') {
-        // console.log(e.target.checked);
-        map[e.target.name] = e.target.checked;
-      }
-  });
+// document.body.addEventListener('change', e => {
+//       if (e.target.type === 'checkbox') {
+//         // console.log(e.target.checked);
+//         map[e.target.name] = e.target.checked;
+//       }
+//   });
 
   </script>
 </body>
