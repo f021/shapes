@@ -370,7 +370,7 @@
                 - len(state.arr[i], target)
                 - len(state.arr[i-1], target) 
                 ) < 0.5) {
-              console.log(state.arr[i]);
+              // console.log(state.arr[i]);
               search = state.arr[i];
             }
           };
@@ -570,6 +570,7 @@
           _('y').value = mouse.y;
           _('rgb').value = pixelXY(mouse);
           if (dragElm !== null) {
+            // console.log(dragElm);
             dragElm.move(mouse);
           }
           if (dragLine !== null) {
