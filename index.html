@@ -74,8 +74,6 @@
       background-color: green;
     }
 
-
-
   </style>
 </head>
 <body>
@@ -126,7 +124,7 @@
 
     <section id="toolbox">
         <form class="hide" name="map">
-          <fieldset>
+          <fieldset name="map">
             <legend>Map</legend>
             <label>x:<input type="range" name="offsetX" value="0"></label>
             <label>y:<input type="range" name="offsetY" value="0"></label>
@@ -165,8 +163,8 @@
               <label>quadratic: <input type="color" name="curveColor"></label> 
             </fieldset>
               <label>path: <input type="color" name="pathColor"></label>
-              <label>fill: <input type="color" name="fillColor">
-              </label>
+              <label>fill: <input type="color" name="fillColor"></label>
+              <label>line width: <input type="range" name="lineWidth" min="0" max="10" value="1" step=".5"></label>
           </fieldset>
         </form><!-- toolbox -->
       </section><!--#toolbar-->
@@ -222,28 +220,6 @@
         elm.innerHTML = '';
       }
 
-      // const history = (u,r) => {
-      //   let ab = (a,b) => {
-      //     let x = a.arr.pop();
-      //     if (!a.arr.length) { a.elm.disabled = true; }
-      //     if (!b.arr.length) { b.elm.disabled = false; }
-      //     b.arr.push(x);
-      //     return x;
-      //   };
-      //   let clear = a => { a.arr =[]; a.flag = false; };
-      //   return {
-      //     add (elm) {
-      //       u.arr.push(elm);
-      //       r.arr = [];
-      //       u.elm.disabled = false;
-      //       r.elm.disabled = true;
-      //     },
-      //     undo () { return ab(u,r); },
-      //     redo () { return ab(r,u); },
-      //     reset () { clear(a); clear(b); }        
-      //   };
-      // };
-
       const size = elm => ({
         w: elm.clientWidth,
         h: elm.clientHeight
@@ -256,11 +232,17 @@
           ctx = obj.ctx;
           listenCanvas();
         },
+        reset () { _('offsetX').value = 0; _('offsetY').value = 0; _('zoom').value = 1; },
         launch () { timerFn(draw, 1000/60).start(); },
         // undo () {scene.undo()},
         // redo () {scene.redo()}
       };
 
+      const mapping = () => ({
+        x: _('offsetX').value * _('zoom').value,
+        y: _('offsetY').value * _('zoom').value,
+        z: _('zoom').value
+      });
 
       const anchorType = {
         move (pos) { return moveDot(pos) },
@@ -268,27 +250,23 @@
         quadratic (pos) { return quadraticDot(pos) }
       }
 
-      // const copyOf = (a) => {
-      //   return a.map(e => Object.assign(e,{})).slice();
-      // }
+      const path = {
 
-      const screen = (state) => ({
-
-        show () {console.log(state.arr) },
+        show () {console.log(this.arr) },
 
         drawRect () {
-          state.arr.forEach(elm => elm.draw());
+          this.arr.forEach(elm => elm.draw());
         },
 
         add (pos) {
           let elm;
-          if (state.arr.length === 0) {
+          if (this.arr.length === 0) {
             elm = anchorType.move(pos);
           } else {
-            pos.prev = state.last();
+            pos.prev = this.last();
             elm = anchorType[who('node')](pos);
           }  
-          state.arr.push(elm);
+          this.arr.push(elm);
           console.log('add anchor: ', elm);
         },
 
@@ -298,8 +276,9 @@
 
         drawPath () {
           ctx.beginPath();
+          // ctx.transform(1, 0, 0, 1, 0, _('offsetY').value);
           ctx.strokeStyle = _('pathColor').value;
-          state.arr.forEach(elm => elm.path());
+          this.arr.forEach(elm => elm.path());
           if (_('closePath').checked) {
             ctx.fillStyle = _('fillColor').value;
             ctx.fill();
@@ -309,11 +288,9 @@
         },
 
         isDot (target) {
-          let search = state.arr.filter(elm => 
-            target.x >= elm.box().left &&
-            target.x <= elm.box().right && 
-            target.y >= elm.box().top &&
-            target.y <= elm.box().bottom
+          let search = this.arr.filter(elm => target.x >= elm.box().left
+            && target.x <= elm.box().right && target.y >= elm.box().top 
+            && target.y <= elm.box().bottom
           );
           if (!search.length) {
             return false;
@@ -323,39 +300,44 @@
         },
 
         isLine (target) {
-          let len = state.arr.length;
+          let len = this.arr.length;
           if (len > 0) {
             for (let i = 1; i < len; i++){
-              if (state.arr[i].draggable) {
+              if (this.arr[i].draggable) {
                 shadow.lineWidth = 10;
                 shadow.beginPath();
-                shadow.moveTo(state.arr[i-1].x, state.arr[i-1].y);
-                state.arr[i].path(shadow);
+                shadow.moveTo(this.arr[i-1].x, this.arr[i-1].y);
+                this.arr[i].path(shadow);
                 if (shadow.isPointInStroke(target.x, target.y)) {
-                  return { elm: state.arr[i], method: 'curve' };
+                  return { elm: this.arr[i], method: 'curve' };
                 };
               };
             };
         };
         return false;
       }
+    };
+
+
+
+
+    const pathTuning = () => ({
+      fill: _('fillColor').value, 
+      line: _('lineWidth').value,
+      path: _('pathColor').value,
     });
 
-      // const len = (a,b) => Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow (a.y - b.y, 2));
+
+    const shape = (state) => {
+      return Object.assign(
+        Object.create(path),
+        { arr: state.arr, last () { return state.arr.slice(-1)[0]} },
+        pathTuning()
+        );
+    };
 
 
-const arr1 = [];
-const arr2 = [];
-      const scene = screen({
-        arr:[],
-        last () {
-          return this.arr.slice(-1)[0];
-        }
-        // hist: history(
-        //   { arr:arr1, elm: $('button[name=undo]') },
-        //   { arr:arr2, elm: $('button[name=redo]') }
-        // )
-      });
+      const scene = shape({arr: []});
 
       const rect = {
 
@@ -427,11 +409,14 @@ const arr2 = [];
 
 
       const draw = () => {
+        let map = mapping();
         scene.clear();
+        ctx.setTransform(map.z, 0, 0, map.z, map.x, map.y);
         if (img && is('showImage')) {
+          // ctx.drawImage(img, map.x, map.y, canvas.width * map.z, canvas.height * map.z);
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         }
-        if (is('showPath')) scene.drawPath();
+        if (is('showPath')) scene.drawPath(map);
         if (is('showNodes')) scene.drawRect();
       };
 
@@ -444,12 +429,20 @@ const arr2 = [];
 
       const mouseXY = e => {
         let r = canvas.getBoundingClientRect(e);
+        let map = mapping();
         return {
-          x: e.clientX - Math.floor(r.left),
-          y: e.clientY - Math.floor(r.top)
+          x: (e.clientX - Math.floor(r.left))/map.z - map.x/map.z,
+          y: (e.clientY - Math.floor(r.top))/map.z - map.y/map.z
         };
       };
 
+      const mousexy = e => {
+        let r = canvas.getBoundingClientRect(e);
+        return {
+          x: (e.clientX - Math.floor(r.left)),
+          y: (e.clientY - Math.floor(r.top))
+        };
+      };
 
       const pixelXY = pos => ctx.getImageData(pos.x, pos.y, 1,1).data;
 
@@ -467,6 +460,9 @@ const arr2 = [];
 
 
         canvas.addEventListener('click', e => {
+          if (e.altKey) {
+            return null;
+          }
           if (drag) {
             drag = undefined;
           } else {
@@ -475,27 +471,51 @@ const arr2 = [];
 
         });
 
-        canvas.addEventListener('mousedown', () => {
-          drag = scene.isDot(mouse) || scene.isLine(mouse);
+        canvas.addEventListener('mousedown', (e) => {
+          if (e.altKey) {
+            drag = { x: mousexy(e).x, y: mousexy(e).y, sx: _('offsetX').value, sy: _('offsetY').value} ;
+            console.log(drag);
+            // console.log('1', mouse);
+            return null;
+          } else {
+            drag = scene.isDot(mouse) || scene.isLine(mouse);
+          }
           // console.log(drag);
         });
 
-        // canvas.addEventListener('mouseup', () => {
+        canvas.addEventListener('mouseup', (e) => {
+          if (drag && e.altKey) {
+            // drag = { x: mousexy(e).x, y: mousexy(e).y, sx: _('offsetX').value, sy: _('offsetY').value} ;
+            drag = undefined;
+          }
 
-        // });
+        });
 
         canvas.addEventListener('mousemove', e => {
           mouse = mouseXY(e);
-          if (drag) {
-            drag.elm[drag.method](mouse);
+          if (e.altKey && drag) {
+            // console.log(drag.x, mousexy(e).x, drag.x - mousexy(e).x);
+              // _('offsetX').value = (mousexy(e).x - drag.x) / mapping().z;
+              // _('offsetY').value = (mousexy(e).y - drag.y) / mapping().z;
+
+             _('offsetX').value = drag.sx + (mousexy(e).x - drag.x);
+             _('offsetY').value = drag.sy + (mousexy(e).y - drag.y);
+              console.log('x',_('offsetX').value);
+              console.log('y',_('offsetY').value);
+              canvas.style.cursor = 'move';
           } else {
-            if (scene.isDot(mouse) || scene.isLine(mouse)) {
-              canvas.style.cursor = 'pointer';
+            if (drag) {
+              drag.elm[drag.method](mouse);
             } else {
-              canvas.style.cursor = 'crosshair';
+              if (scene.isDot(mouse) || scene.isLine(mouse)) {
+                canvas.style.cursor = 'pointer';
+              } else {
+                canvas.style.cursor = 'crosshair';
+              };
             };
+                      updateXYRGB();
           };
-          updateXYRGB();
+
         });
 
         canvas.addEventListener('mouseover', () => {
@@ -611,8 +631,33 @@ const arr2 = [];
       elm.max = value;
     }
 
+
+      // const history = (u,r) => {
+      //   let ab = (a,b) => {
+      //     let x = a.arr.pop();
+      //     if (!a.arr.length) { a.elm.disabled = true; }
+      //     if (!b.arr.length) { b.elm.disabled = false; }
+      //     b.arr.push(x);
+      //     return x;
+      //   };
+      //   let clear = a => { a.arr =[]; a.flag = false; };
+      //   return {
+      //     add (elm) {
+      //       u.arr.push(elm);
+      //       r.arr = [];
+      //       u.elm.disabled = false;
+      //       r.elm.disabled = true;
+      //     },
+      //     undo () { return ab(u,r); },
+      //     redo () { return ab(r,u); },
+      //     reset () { clear(a); clear(b); }        
+      //   };
+      // };
     </script>
 
 
   </body>
 </html>
+
+
+
