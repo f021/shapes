@@ -9,13 +9,11 @@
       box-sizing: border-box;
     }
 
-    canvas {
-      cursor: crosshair;
-    }
 
     html, body {
       margin:0;
       height:100%;
+      width: 100%;
       font-family: sans-serif;
       font-size: 1em;
     }
@@ -27,141 +25,55 @@
     }
 
     canvas {
-      position: absolute;
-      left:0;
-      top:0;
-      z-index: 1;
-    }
-
-    .shadow {
-      z-index: 0;
-    }
-
-    fieldset {
-      /*border-top: 5px solid green;*/
-      /*border: 1px solid black;*/
-    }
-
-    textarea {
-      height: 50%;
-      width: 100%;
-    }
-
-    .container {
-      height: 100%;
-      display:flex;
-      flex-wrap: nowrap;
-      align-items: center;
-      /*background-color: rgb(254, 204, 100);*/
-    }
-
-    .max-height {
-      height:100%;
-    }
-
-    .flex {
-      display: flex;
-    }
-
-    .col {
-      flex-direction: column;
-    }
-
-    .row {
-      flex-direction: row;
-    }
-
-    .alg-center {
-      justify-content: center;
-    }
-
-    legend {
-      font-size:.5em;
-      /*text-align: center;*/
-    }
-
-    .center, .text, .error, img {
-      position:absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .img-box {
-      height: 100%;
-      width: 100%;
-      position: relative;
-    }
-
-    .img-box h1 {
-      padding-left: 10%;
-    }
-
-    .img-box p {
-      padding-left: 10%;
-    }
-
-    button.current {
-      color: red;
-    }
-  
-    section {
-      padding: 0 2%;
-      /*background-color: green;*/
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      justify-content: center;
-    }
-
-    #output, #toolbox {
-      flex: 1 0 25%;
-    }
-
-    h1, p {
-      padding: 0;
-      margin: 0;
-    }
-
-    #draw {
-      flex: 1 0 50%;
-      padding: 2% 0;
-    }
-
-    #toolbox label {
-      font-size: 0.5em;
-    }
-
-    .partout {
-      position: relative;
-      height: 100%;
-      padding: 1%;
-      /*background-color: orange;*/
-    }
-
-    .dashed-border {
-      border: 5px dashed lightgrey;
-    }
-
-    .radio label {
-      font-size:0.5em;
-    }
-/*for test*/
-    .green {
-      background-color: green;
+      margin: auto;
+      cursor: crosshair;
     }
 
     .hide {
       display: none;
     }
-
-    label {
-      display: box;
-    }
-
-    #zoom {
+  
+    .container {
       width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: no-wrap;
     }
+
+    section, form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container section {
+      background-color: orange;
+      flex: 1 0 15%;
+      margin: auto;
+    }
+
+    #draw {
+      flex: 1 0 70%;
+      height: 100%;
+    }
+
+    #draw form {
+      flex: 1 0 auto;
+    }
+
+    #draw form[name=img] {
+      position: relative;
+      flex: 1 0 90%;
+      display: flex;
+      /*position: relative;*/
+    }
+
+    .partout {
+      height: 100%;
+      margin: auto;
+      background-color: green;
+    }
+
 
 
   </style>
@@ -178,38 +90,39 @@
             <option value="p5js">p5.js</option>
             <option value="array">array</option>
             <option value="json">JSON</opton>
-            </select>
+          </select>
           <textarea name="output" disabled></textarea>
         </fieldset>
-      </form><!-- output -->
-      <form name="history" id='hist'>
-        <button type="button" name="undo" disabled>undo</button>
-        <button type="button" name="redo"disabled>redo</button>
-        <button type="button" name="clear">clear</button>
-        <button type="button" name="copy" disabled>copy to clipboar</button>
-        <button type="button" name="save" disabled>save</button>
+        <fieldset>
+          <button type="button" name="undo" disabled>undo</button>
+          <button type="button" name="redo"disabled>redo</button>
+          <button type="button" name="clear">clear</button>
+          <button type="button" name="copy" disabled>copy to clipboar</button>
+          <button type="button" name="save" disabled>save</button>
+        </fieldset>
       </form><!-- history -->
-    </section><!--#output-->
+    </section><!--#output-->    
 
     <section id="draw">
-      <div class="partout dashed-border">
-        <div class="img-box">
-          <div class="text">
-            <h1>Hello!</h1>
-            <p>choose file, make shapes, have a fun with p5.js</p>
-            </div>
-        </div><!--.img-box-->
-      </div><!--.img-wrapper-->
+      <form name="img">
+        <div class="partout dashed-border">
+          <div class="img-box">
+            <div class="text">
+              <h1>Hello!</h1>
+              <p>choose file, make shapes, have a fun with p5.js</p>
+              </div>
+          </div><!--.img-box-->
+        </div><!--.img-wrapper-->
+      </form><!-- img -->
       <form name="coordinates">
         <fieldset>
           <legend>Coordinates/Colors</legend>
-                <label>x: <input type="text" name="x" disabled></label>
-                <label>y: <input type="text" name="y" disabled></label>
-                <label>rgb: <input type="text" name="rgb" disabled></label>
-            </fieldset>
-          </form><!--coordinates-->
+          <label>x: <input type="text" name="x" disabled></label>
+          <label>y: <input type="text" name="y" disabled></label>
+          <label>rgba: <input type="text" name="rgb" disabled></label>
+        </fieldset>
+      </form><!--coordinates-->
     </section><!--#draw-->
-
 
     <section id="toolbox">
         <form class="hide" name="map">
@@ -225,37 +138,41 @@
           <fieldset name="file">
             <legend>File</legend>
             <input type="file" id="file">
-            <button type='button' name='create'>create canvas</button>
+          </fieldset>
+          <fieldset name='canvas'>
+            <button type='button' name='create'>new canvas</button>
+            <button type='button' name='clear'>clear canvas</button>
             <button type="button" name="launch">launch</button>
           </fieldset>
-          <fieldset name="primitives">
-            <legend>2D primitives</legend>
-            <label><input type="radio" name="shape" value="triange">triangle</label>
-            <label><input type="radio" name="shape" value="ellipse">ellipse</label>
-            <label><input type="radio" name="shape" value="line">line</label>
-            <label><input type="radio" name="shape" value="curve">curve</label>
-            <label><input type="radio" name="shape" value="bezier">bezier</label>
-            <label><input type="radio" name="shape" value="arc">arc</label>
-          </fieldset>
-          <fieldset name="shapes">
-            <legend>Shape</legend>
-            <label><input type="radio" name="path" value="line" checked>line</label>
-            <label><input type="radio" name="path" value="bezier">bezier</label>
-            <label><input type="radio" name="path" value="quadratic">curve</label>
+          <fieldset name="nodes">
+            <legend>Nodes: </legend>
+            <label><input type="radio" name="node" value="line" checked>line</label>
+            <label><input type="radio" name="node" value="quadratic">curve</label>
             <label><input type="checkbox" name="closePath">close path</label>
             <button type="button" name="new">new path</button>
           </fieldset>
-        </form><!--toolbar-->
-        <form>
-        <fieldset>
-          <legend>show/hide<legend>
-          <label><input type="checkbox" name="showImage" checked id="hello">image</label>
-          <label><input type="checkbox" name="showPath" checked>shapes</label>
-          <label><input type="checkbox" name="showDots" checked>dots</label>
-        </fieldset>
-      </form>
-      </seciton><!--#toolbar-->
-    </div><!--.container-->
+          <fieldset name="show">
+            <legend>show/hide<legend>
+            <label><input type="checkbox" name="showImage" checked id="hello">image</label>
+            <label><input type="checkbox" name="showPath" checked>path</label>
+            <label><input type="checkbox" name="showNodes" checked>nodes</label>
+          </fieldset>
+          <fieldset name="customize">
+            <legend>Custom colors:</legend>
+            <fieldset>
+              <legend>Nodes: </legend>
+              <label>line: <input type="color" name="lineColor"></label>
+              <label>quadratic: <input type="color" name="curveColor"></label> 
+            </fieldset>
+              <label>path: <input type="color" name="pathColor"></label>
+              <label>fill: <input type="color" name="fillColor">
+              </label>
+          </fieldset>
+        </form><!-- toolbox -->
+      </section><!--#toolbar-->
+
+  </div><!--.container-->
+
 
     <script>
 
@@ -263,66 +180,69 @@
 
 
 
-      let canvas, ctx;
-      let draft, shadow;
-      let arr = []; ///// -->scene
+      let img, canvas, ctx ,draft, shadow;
+
       const $ = str => document.querySelector(str);
       const _ = str => $(`input[name=${str}]`);
-      const imgBox = $('.img-box');
+
+      const is = str => _(str).checked;
+
+      // const imgBox = $('.img-box');
+      const imgBox = $('form[name=img]');
+      const imgBtn = $('input[type=file]');
+
+      const error = '<h1>Hey</h1><p>I\'m understand only img file types...</p>';     
+
       const who = (str) => [].filter.call(
         document.querySelectorAll(`input[name=${str}]`), e =>
           e.checked)[0].value;
-      const is = str => _(str).checked;      
 
-      const createCanvas = elm => {
-        let box = size(elm);
+      const getStyle = elm => window.getComputedStyle(elm);
+      const getRect = (obj, elm) => obj.getBoundingClientRect(elm);
+
+      const createCanvas = size => {
+        let box = size;
         canvas = document.createElement('canvas');
         ctx = canvas.getContext('2d');
         draft = document.createElement('canvas');
         shadow = draft.getContext('2d');        
         canvas.width = box.w; canvas.height = box.h;
         draft.width = box.w; draft.height = box.h;
-        removeChildren(elm);
-        elm.appendChild(canvas);
-        elm.appendChild(draft);
-        draft.className = "shadow";
+        removeChildren(imgBox);
+        imgBox.appendChild(canvas);
+        imgBox.appendChild(draft);
+        draft.className = "hide";
         return {
           canvas,
           ctx
         };
-      }
+      };
 
       const removeChildren = elm => {
         elm.innerHTML = '';
       }
 
-      const history = (u,r) => {
-        let ab = (a,b) => {
-          let x = a.arr.pop();
-          if (!a.arr.length) { a.elm.disabled = true; }
-          if (!b.arr.length) { b.elm.disabled = false; }
-          b.arr.push(x);
-          return x;
-        };
-        let clear = a => { a.arr =[]; a.flag = false; };
-        return {
-          add (elm) {
-            u.arr.push(elm);
-            r.arr = [];
-            u.elm.disabled = false;
-            r.elm.disabled = true;
-          },
-          undo () { return ab(u,r); },
-          redo () { return ab(r,u); },
-          reset () { clear(a); clear(b); }        
-        };
-      };
-
-
-      const life = history(
-        { arr:[], elm: $('button[name=undo]') },
-        { arr:[], elm: $('button[name=redo]') }
-      );
+      // const history = (u,r) => {
+      //   let ab = (a,b) => {
+      //     let x = a.arr.pop();
+      //     if (!a.arr.length) { a.elm.disabled = true; }
+      //     if (!b.arr.length) { b.elm.disabled = false; }
+      //     b.arr.push(x);
+      //     return x;
+      //   };
+      //   let clear = a => { a.arr =[]; a.flag = false; };
+      //   return {
+      //     add (elm) {
+      //       u.arr.push(elm);
+      //       r.arr = [];
+      //       u.elm.disabled = false;
+      //       r.elm.disabled = true;
+      //     },
+      //     undo () { return ab(u,r); },
+      //     redo () { return ab(r,u); },
+      //     reset () { clear(a); clear(b); }        
+      //   };
+      // };
 
       const size = elm => ({
         w: elm.clientWidth,
@@ -331,14 +251,14 @@
 
       const btn = {
         create () {
-          let obj = createCanvas($('.partout'));
+          let obj = createCanvas(size(imgBox));
           canvas = obj.canvas;
           ctx = obj.ctx;
           listenCanvas();
         },
         launch () { timerFn(draw, 1000/60).start(); },
-        undo () {scene.undo()},
-        redo () {scene.redo()}
+        // undo () {scene.undo()},
+        // redo () {scene.redo()}
       };
 
 
@@ -348,15 +268,12 @@
         quadratic (pos) { return quadraticDot(pos) }
       }
 
-      const copyOf = (a) => {
-        return a.map(e => Object.create(e)).slice();
-      }
+      // const copyOf = (a) => {
+      //   return a.map(e => Object.assign(e,{})).slice();
+      // }
 
       const screen = (state) => ({
 
-        undo () { state.arr = copyOf(state.hist.undo()); console.log('u', state.arr)},
-        redo () { state.arr = copyOf(state.hist.redo()); console.log('r', state.arr)},
-        save () { let tmp = copyOf(state.arr); console.log('a',tmp); state.hist.add(tmp); },
         show () {console.log(state.arr) },
 
         drawRect () {
@@ -369,21 +286,23 @@
             elm = anchorType.move(pos);
           } else {
             pos.prev = state.last();
-            elm = anchorType[who('path')](pos);
+            elm = anchorType[who('node')](pos);
           }  
           state.arr.push(elm);
           console.log('add anchor: ', elm);
         },
 
-        clear (elm) {
-          elm.clearRect(0, 0, canvas.width, canvas.height);
+        clear () {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
         },
 
         drawPath () {
           ctx.beginPath();
-          ctx.strokeStyle = 'black';
+          ctx.strokeStyle = _('pathColor').value;
           state.arr.forEach(elm => elm.path());
           if (_('closePath').checked) {
+            ctx.fillStyle = _('fillColor').value;
+            ctx.fill();
             ctx.closePath();
           }
           ctx.stroke();
@@ -428,14 +347,14 @@
 const arr1 = [];
 const arr2 = [];
       const scene = screen({
-        arr:arr,
+        arr:[],
         last () {
-          return arr.slice(-1)[0];
-        },
-        hist: history(
-          { arr:arr1, elm: $('button[name=undo]') },
-          { arr:arr2, elm: $('button[name=redo]') }
-        )
+          return this.arr.slice(-1)[0];
+        }
+        // hist: history(
+        //   { arr:arr1, elm: $('button[name=undo]') },
+        //   { arr:arr2, elm: $('button[name=redo]') }
+        // )
       });
 
       const rect = {
@@ -473,7 +392,7 @@ const arr2 = [];
       const moveDot = pos => {
         return Object.assign(
           lineDot(pos),
-          {path () {ctx.moveTo(this.x, this.y)}}
+          { path () {ctx.moveTo(this.x, this.y)} }
         );
       };
 
@@ -508,16 +427,20 @@ const arr2 = [];
 
 
       const draw = () => {
-        scene.clear(ctx);
+        scene.clear();
+        if (img && is('showImage')) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
         if (is('showPath')) scene.drawPath();
-        if (is('showDots')) scene.drawRect();
-      }
+        if (is('showNodes')) scene.drawRect();
+      };
 
       document.body.addEventListener('click', e => {
         if (e.target.type === 'button') {
           btn[e.target.name]();
         }
       });
+
 
       const mouseXY = e => {
         let r = canvas.getBoundingClientRect(e);
@@ -546,21 +469,20 @@ const arr2 = [];
         canvas.addEventListener('click', e => {
           if (drag) {
             drag = undefined;
-            scene.save();
           } else {
             scene.add(mouse);
-            scene.save();
           } 
 
         });
 
         canvas.addEventListener('mousedown', () => {
           drag = scene.isDot(mouse) || scene.isLine(mouse);
+          // console.log(drag);
         });
 
-        canvas.addEventListener('mouseup', () => {
+        // canvas.addEventListener('mouseup', () => {
 
-        });
+        // });
 
         canvas.addEventListener('mousemove', e => {
           mouse = mouseXY(e);
@@ -583,6 +505,110 @@ const arr2 = [];
         canvas.addEventListener('mouseout', () => {
           mouseOverCanvas = false;
         });
+    }
+
+
+
+////////////////////////////////////
+// load-image
+////////////////////////////////////
+
+
+// listen event 'change' on imgBtn (input[type=file])
+// onchange call handleFile
+
+  imgBtn.addEventListener('change', handleFile);
+
+// sendMsd :: string element --> null
+// remove all from element 'to', make new 'div', add class 'error'
+// add msg, put it inside element 'to'
+
+  function sendMsg(msg, to) { 
+    let err = document.createElement('div');
+    err.className = 'error';
+    err.innerHTML = msg;
+    imgBox.innerHTML = '';
+    imgBox.appendChild(err);
+  }
+
+// isImage :: string --> bool
+// return true if filetype image
+
+  function isImage(filetype) {
+    return /^image/.test(filetype);
+  }
+
+
+//  getSize :: element --> object
+//  return width and height of the element
+
+  function getSize(elm) {
+    if (elm.clientHeight){
+      return {
+        w: elm.clientWidth,
+        h: elm.clientHeight
+      }
+    } else {
+      return {
+        w: elm.width,
+        h: elm.height
+      }
+    }
+  }
+
+// fitSize object --> object --> object
+// resize 'a' to fit in 'b'
+
+  function fitSize(a, b) {
+    let rate = a.w / a.h;
+    if (a.w > b.w) {
+      a.h -= (a.w - b.w) / rate;
+    } else {
+      a.h += (b.w - a.w) / rate;
+    }
+    a.w = b.w;  
+    if (a.h > b.h) {
+      a.w -= (a.h - b.h) * rate;
+      a.h -= a.h - b.h;
+    } 
+    a.w = Math.ceil(a.w);
+    a.h = Math.ceil(a.h);    
+    return a;
+  
+  }
+
+// handleFile event --> img
+// if event 'change' on input[type=file]
+// if filetype image make new image and add to canvas
+
+  function handleFile() {   
+    let file = this.files[0];
+    if ( !isImage(file.type) ) {
+      sendMsg(error, imgBox);
+    } else {
+      img = new Image();
+      img.src = window.URL.createObjectURL(file);     
+      img.onload = function(){
+        window.URL.revokeObjectURL(this.src);
+        drawImg(this); // when img loaded... put it in canvas
+      }
+    }
+  }
+
+  function drawImg(img) {
+    let size = fitSize(getSize(img),getSize(imgBox));
+    createCanvas(size);
+    ctx.drawImage(img, 0, 0, size.w, size.h);
+    document.forms.map.style.display = "block";
+    setRange('input[name=offsetX]', size.w);
+    setRange('input[name=offsetY]', size.h);
+    listenCanvas();
+  }
+
+    function setRange(str, value){
+      let elm = document.querySelector(str);
+      elm.min = -value;
+      elm.max = value;
     }
 
     </script>
