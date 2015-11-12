@@ -26,6 +26,17 @@
       border: 0;
     }
 
+    canvas {
+      position: absolute;
+      left:0;
+      top:0;
+      z-index: 1;
+    }
+
+    .shadow {
+      z-index: 0;
+    }
+
     fieldset {
       /*border-top: 5px solid green;*/
       /*border: 1px solid black;*/
@@ -122,6 +133,7 @@
     }
 
     .partout {
+      position: relative;
       height: 100%;
       padding: 1%;
       /*background-color: orange;*/
@@ -172,7 +184,7 @@
       </form><!-- output -->
       <form name="history" id='hist'>
         <button type="button" name="undo" disabled>undo</button>
-        <button type="button" name="history"disabled>redo</button>
+        <button type="button" name="redo"disabled>redo</button>
         <button type="button" name="clear">clear</button>
         <button type="button" name="copy" disabled>copy to clipboar</button>
         <button type="button" name="save" disabled>save</button>
@@ -227,9 +239,9 @@
           </fieldset>
           <fieldset name="shapes">
             <legend>Shape</legend>
-            <label><input type="radio" name="shape" value="line" checked>line</label>
-            <label><input type="radio" name="shape" value="bezier">bezier</label>
-            <label><input type="radio" name="shape" value="curve">curve</label>
+            <label><input type="radio" name="path" value="line" checked>line</label>
+            <label><input type="radio" name="path" value="bezier">bezier</label>
+            <label><input type="radio" name="path" value="quadratic">curve</label>
             <label><input type="checkbox" name="closePath">close path</label>
             <button type="button" name="new">new path</button>
           </fieldset>
@@ -238,7 +250,8 @@
         <fieldset>
           <legend>show/hide<legend>
           <label><input type="checkbox" name="showImage" checked id="hello">image</label>
-          <label><input type="checkbox" name="showShape" checked>shapes</label>
+          <label><input type="checkbox" name="showPath" checked>shapes</label>
+          <label><input type="checkbox" name="showDots" checked>dots</label>
         </fieldset>
       </form>
       </seciton><!--#toolbar-->
@@ -251,24 +264,28 @@
 
 
       let canvas, ctx;
+      let draft, shadow;
       let arr = []; ///// -->scene
-
       const $ = str => document.querySelector(str);
       const _ = str => $(`input[name=${str}]`);
       const imgBox = $('.img-box');
       const who = (str) => [].filter.call(
         document.querySelectorAll(`input[name=${str}]`), e =>
           e.checked)[0].value;
-      
+      const is = str => _(str).checked;      
 
       const createCanvas = elm => {
-        let canvas = document.createElement('canvas');
-        let ctx = canvas.getContext('2d');
         let box = size(elm);
-        canvas.width = box.w;
-        canvas.height = box.h;
+        canvas = document.createElement('canvas');
+        ctx = canvas.getContext('2d');
+        draft = document.createElement('canvas');
+        shadow = draft.getContext('2d');        
+        canvas.width = box.w; canvas.height = box.h;
+        draft.width = box.w; draft.height = box.h;
         removeChildren(elm);
         elm.appendChild(canvas);
+        elm.appendChild(draft);
+        draft.className = "shadow";
         return {
           canvas,
           ctx
@@ -278,6 +295,34 @@
       const removeChildren = elm => {
         elm.innerHTML = '';
       }
+
+      const history = (u,r) => {
+        let ab = (a,b) => {
+          let x = a.arr.pop();
+          if (!a.arr.length) { a.elm.disabled = true; }
+          if (!b.arr.length) { b.elm.disabled = false; }
+          b.arr.push(x);
+          return x;
+        };
+        let clear = a => { a.arr =[]; a.flag = false; };
+        return {
+          add (elm) {
+            u.arr.push(elm);
+            r.arr = [];
+            u.elm.disabled = false;
+            r.elm.disabled = true;
+          },
+          undo () { return ab(u,r); },
+          redo () { return ab(r,u); },
+          reset () { clear(a); clear(b); }        
+        };
+      };
+
+
+      const life = history(
+        { arr:[], elm: $('button[name=undo]') },
+        { arr:[], elm: $('button[name=redo]') }
+      );
 
       const size = elm => ({
         w: elm.clientWidth,
@@ -291,21 +336,28 @@
           ctx = obj.ctx;
           listenCanvas();
         },
-        launch () {
-          timerFn(draw, 1000/60).start();
-        } 
+        launch () { timerFn(draw, 1000/60).start(); },
+        undo () {scene.undo()},
+        redo () {scene.redo()}
       };
 
-      const shapes = {
-        line(e) {
-          anchor(e);
-        },
-        bezier(e) {
-          bezer(e);
-        }
+
+      const anchorType = {
+        move (pos) { return moveDot(pos) },
+        line (pos) { return lineDot(pos) },
+        quadratic (pos) { return quadraticDot(pos) }
+      }
+
+      const copyOf = (a) => {
+        return a.map(e => Object.create(e)).slice();
       }
 
       const screen = (state) => ({
+
+        undo () { state.arr = copyOf(state.hist.undo()); console.log('u', state.arr)},
+        redo () { state.arr = copyOf(state.hist.redo()); console.log('r', state.arr)},
+        save () { let tmp = copyOf(state.arr); console.log('a',tmp); state.hist.add(tmp); },
+        show () {console.log(state.arr) },
 
         drawRect () {
           state.arr.forEach(elm => elm.draw());
@@ -314,29 +366,17 @@
         add (pos) {
           let elm;
           if (state.arr.length === 0) {
-            elm = anchor({x: pos.x, y: pos.y, type: 'moveTo'});
+            elm = anchorType.move(pos);
           } else {
-            switch (who('shape')){
-              case 'line':
-                elm = anchor(pos);
-                break;
-              case 'bezier':
-                elm = bezier({
-                  x: pos.x,
-                  y: pos.y,
-                  sibling: state.arr.slice(-1)[0]
-                });
-                break;
-              default:
-                console.log('error...')
-              }
-            }
-          console.log('add new anchor... ', elm);
+            pos.prev = state.last();
+            elm = anchorType[who('path')](pos);
+          }  
           state.arr.push(elm);
+          console.log('add anchor: ', elm);
         },
 
-        clear() {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        clear (elm) {
+          elm.clearRect(0, 0, canvas.width, canvas.height);
         },
 
         drawPath () {
@@ -349,7 +389,7 @@
           ctx.stroke();
         },
 
-        seek (target) {
+        isDot (target) {
           let search = state.arr.filter(elm => 
             target.x >= elm.box().left &&
             target.x <= elm.box().right && 
@@ -359,37 +399,50 @@
           if (!search.length) {
             return false;
           } else {
-            return search[0];
+            return { elm: search[0], method: 'moveDot' };
           }
         },
 
-        line (target) {
-          let search;
-          for (let i = 1; i < state.arr.length; i++) {
-            if (Math.abs(len(state.arr[i],state.arr[i-1])
-                - len(state.arr[i], target)
-                - len(state.arr[i-1], target) 
-                ) < 0.5) {
-              // console.log(state.arr[i]);
-              search = state.arr[i];
-            }
-          };
-          
-          if (search) {
-            return search;
-          } else {
-            return false;
-          };
-        }
+        isLine (target) {
+          let len = state.arr.length;
+          if (len > 0) {
+            for (let i = 1; i < len; i++){
+              if (state.arr[i].draggable) {
+                shadow.lineWidth = 10;
+                shadow.beginPath();
+                shadow.moveTo(state.arr[i-1].x, state.arr[i-1].y);
+                state.arr[i].path(shadow);
+                if (shadow.isPointInStroke(target.x, target.y)) {
+                  return { elm: state.arr[i], method: 'curve' };
+                };
+              };
+            };
+        };
+        return false;
+      }
+    });
 
+      // const len = (a,b) => Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow (a.y - b.y, 2));
+
+
+const arr1 = [];
+const arr2 = [];
+      const scene = screen({
+        arr:arr,
+        last () {
+          return arr.slice(-1)[0];
+        },
+        hist: history(
+          { arr:arr1, elm: $('button[name=undo]') },
+          { arr:arr2, elm: $('button[name=redo]') }
+        )
       });
-
-      const len = (a,b) => Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow (a.y - b.y, 2));
-
-      const scene = screen({arr:arr});
 
       const rect = {
 
+        color: '#ff0000',
+        size: 10,
+        draggable: false,
         box () {
           return {
             left: this.x - this.size/2,
@@ -398,112 +451,66 @@
             bottom: this.y + this.size/2
           }
         },
-
         draw () {
           let r = this.box();
           ctx.fillStyle = this.color;
           ctx.fillRect(r.left, r.top, this.size, this.size);
           return this;
         },
-
-        move (pos) {
+        moveDot (pos) {
           this.x = pos.x;
           this.y = pos.y;
-          this.draw();
         },
-
-        curve (pos) {
-          this.px = pos.x;
-          this.py = pos.y;
-          this.draw();
-        },
-
-        path () {
-          ctx[this.type](this.px, this.py, this.x, this.y);
+        // curve () {
+            // hello, who are?
+        // },
+        path (context) {
+          (context || ctx).lineTo(this.x, this.y);
         }
-      }
+      };
 
-      const anchor = (pos) => {
-        let state = {
-          x: pos.x,
-          y: pos.y,
-          px: pos.px || pos.x,
-          py: pos.py || pos.y,
-          type: pos.type || 'quadraticCurveTo',
-          size: 10,
-          color: pos.color || '#ff0000'
-        };
-
+      // first dot aka 'adam'
+      const moveDot = pos => {
         return Object.assign(
-          Object.create(rect),
-          state
+          lineDot(pos),
+          {path () {ctx.moveTo(this.x, this.y)}}
         );
-
       };
 
+// pos = { x: x, y: y, prev: link to previus element }
 
-      const bezierCurve = {
-
-        draw () {
-          console.log(this);
-          this.main.draw();
-          this.first.draw();
-          this.second.draw();
-        },
-
-        // path        
-
-
-      };
-
-      const bezier = (pos) => {
-        let state = {
-          x:pos.x,
-          y:pos.y,
-          main: anchor({
-            x: pos.x,
-            y: pos.y
-          }),
-          sibling: pos.sibling,
-          first: anchor({
-            x: (pos.x + pos.sibling.x)/2,
-            y: (pos.y + pos.sibling.y)/2,
-            color: 'blue'
-          }),
-          second: anchor({
-            x: (pos.x + pos.sibling.x)/2,
-            y: (pos.y + pos.sibling.y)/2,
-            color: 'green'
-          }),
-          type: 'bezierCurveTo'
-        }
-
+      const quadraticDot = pos => {
         return Object.assign(
-          Object.create(bezierCurve),
-          state
-          );
-      }
+          lineDot(pos),
+          { 
+            px: pos.prev.x,
+            py: pos.prev.y,
+            color: 'green',
+            draggable: true,
+            curve (xy) { this.px = xy.x; this.py = xy.y; this.path(); },
+            path (context) { (context || ctx).quadraticCurveTo( this.px, this.py, this.x, this.y)
+            }
+          }
+        );
+      };
 
-
+      const lineDot = pos => {
+        let state = { x: pos.x, y: pos.y };
+        return Object.assign( Object.create(rect), state);
+      };      
 
       const timerFn = (fn, ms) => {
-
-        let id;
-        
-        const start = () => { id = setInterval(fn, ms)} ; //setInterval
-        const stop = () => { clearInterval(id)};
-        
-        return {
-          start: start,
-          stop: stop
-        }
+        let id;     
+        const start = () => { id = setInterval(fn, ms) };
+        const stop = () => { clearInterval(id) };
+        return { start: start, stop: stop } ;
       };
 
 
       const draw = () => {
-        scene.clear();
-        scene.drawPath();
-        scene.drawRect();
+        scene.clear(ctx);
+        if (is('showPath')) scene.drawPath();
+        if (is('showDots')) scene.drawRect();
       }
 
       document.body.addEventListener('click', e => {
@@ -525,33 +532,30 @@
 
       const listenCanvas = () => {
 
-        let mouseOverCanvas = false;
         let mouse;
-        let dragElm = null;
-        let dragLine = null;
-        let flag = true;
+        let drag = undefined;
+        let mouseOverCanvas = false;
+
+        const updateXYRGB = () => {
+          _('x').value = mouse.x;
+          _('y').value = mouse.y;
+         _('rgb').value = pixelXY(mouse);
+        };
 
 
         canvas.addEventListener('click', e => {
-          if (dragElm || dragLine) {
-            dragElm = null;
-            dragLine = null;
+          if (drag) {
+            drag = undefined;
+            scene.save();
           } else {
-            scene.add(anchor(mouse));
+            scene.add(mouse);
+            scene.save();
           } 
 
         });
 
         canvas.addEventListener('mousedown', () => {
-          let e = scene.seek(mouse);
-          let l = scene.line(mouse);
-          if (e) {
-            dragElm = e;
-          } else {
-            if (l) {
-              dragLine = l;
-            }
-          }
+          drag = scene.isDot(mouse) || scene.isLine(mouse);
         });
 
         canvas.addEventListener('mouseup', () => {
@@ -560,22 +564,16 @@
 
         canvas.addEventListener('mousemove', e => {
           mouse = mouseXY(e);
-                  
-          if (scene.seek(mouse) || scene.line(mouse)) {
-            canvas.style.cursor = 'pointer';
+          if (drag) {
+            drag.elm[drag.method](mouse);
           } else {
-            canvas.style.cursor = 'crosshair';
-          }
-          _('x').value = mouse.x;
-          _('y').value = mouse.y;
-          _('rgb').value = pixelXY(mouse);
-          if (dragElm !== null) {
-            // console.log(dragElm);
-            dragElm.move(mouse);
-          }
-          if (dragLine !== null) {
-            dragLine.curve(mouse);
-          }
+            if (scene.isDot(mouse) || scene.isLine(mouse)) {
+              canvas.style.cursor = 'pointer';
+            } else {
+              canvas.style.cursor = 'crosshair';
+            };
+          };
+          updateXYRGB();
         });
 
         canvas.addEventListener('mouseover', () => {
