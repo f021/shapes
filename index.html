@@ -262,7 +262,7 @@
             <label><input type="radio" name="node" value="line" checked />line</label>
             <label><input type="radio" name="node" value="quadratic" />curve</label>
             <label><input type="checkbox" name="closePath" />close path</label>
-            <button type="button" name="new">new path</button>
+            <button type="button" name="newPath">new path</button>
           </fieldset>
           <fieldset name="show">
             <legend>show/hide</legend>
@@ -349,11 +349,11 @@
       });
 
 
-        const initial = {
+      const initial = {
         offsetX: 0,
         offsetY: 0,
         zoom: 1
-        };
+      };
 
       const btn = {
 
@@ -372,6 +372,9 @@
         launch () { timerFn(draw, 1000/60).start(); },
         // undo () {scene.undo()},
         // redo () {scene.redo()}
+        newPath() { scene.new();
+
+        }
       };
 
       const mapping = () => ({
@@ -395,10 +398,10 @@
       }
 
 
-      const path = {
+      const pathMethod = {
 
-        // update() {
-        //   pathTuning 
+        // update (colors) {
+          
         // }
 
         show () {console.log(this.arr) },
@@ -419,10 +422,6 @@
           console.log('add anchor: ', elm);
         },
 
-        clear () {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        },
-
         drawPath () {
           let ff = toRGB(_('pathColor').value);
           let aa = toRGB(_('fillColor').value);
@@ -438,6 +437,17 @@
           ctx.stroke();
         },
 
+        shadowPath (t) {
+          shadow.lineWidth = 10;
+          shadow.beginPath();
+          this.arr.forEach(e => e.path(shadow));
+          if (shadow.isPointInStroke(t.x, t.y)) {
+            return this;
+          } else {
+            return false;
+          }
+        },
+
         isDot (target) {
           let search = this.arr.filter(elm => target.x >= elm.box().left
             && target.x <= elm.box().right && target.y >= elm.box().top 
@@ -446,21 +456,21 @@
           if (!search.length) {
             return false;
           } else {
-            return { elm: search[0], method: 'moveDot' };
+            return { path: this, elm: search[0], method: 'moveDot' };
           }
         },
 
-        isLine (target) {
+        isLine (target, flag=true) {
           let len = this.arr.length;
           if (len > 0) {
             for (let i = 1; i < len; i++){
-              if (this.arr[i].draggable) {
+              if (this.arr[i].draggable && flag) {
                 shadow.lineWidth = 5;
                 shadow.beginPath();
                 shadow.moveTo(this.arr[i-1].x, this.arr[i-1].y);
                 this.arr[i].path(shadow);
                 if (shadow.isPointInStroke(target.x, target.y)) {
-                  return { elm: this.arr[i], method: 'curve' };
+                  return { path: this, elm: this.arr[i], method: 'curve' };
                 };
               };
             };
@@ -469,43 +479,84 @@
       }
     };
 
+    const test222 =[]; /////////
 
-    const pattern = {
 
+    const scrim = (state) => {
+      let arr = [];
+      let current = undefined;
+      let overmouse = undefined;
+
+      let method = {
+        clear () { ctx.clearRect(0,0, canvas.width, canvas.height)},
+        new () { arr.push(shape({arr:[]})); current=arr.slice(-1)[0]; console.log(current)},  // push in arr new path object
+        add (elm) { current.add(elm); console.log(current);},
+        drawPath () { arr.forEach(e => e.drawPath()) },
+        // turn (elm) { current = elm.path },
+        // drawRect () { arr.forEach(e => e.drawRect()) },
+        drawRect () { current.drawRect() },
+        current () { console.log(current); return arr[current]; },
+        isDot (t) { 
+          let s = arr.map(e => e.isDot(t));
+          if (!s.length) return false;
+          s = s.filter(e => e !==false )[0];
+          console.log(s);
+          // current = s.path;
+          return s;
+        },
+        isLine (t) { 
+          let s = arr.map(e => e.isLine(t));
+          if(!s.length) return false;
+          return s.filter(e => e !== false)[0];
+        },
+        overmouse (t) {
+          let a = arr.filter(e => e !== current)
+          .map(e => e.isLine(t, true))[0];
+          if (a) current = a;
+        }
+      };
+
+      return  method;
     }
+      
 
 
     const pathTuning = () => ({
-      fill: _('fillColor').value, 
-      line: _('lineWidth').value,
-      path: _('pathColor').value,
+      colors: {
+        fill: _('fillColor').value, 
+        line: _('lineWidth').value,
+        path: _('pathColor').value,
+      }
     });
 
-    const customArray = () => ({
-      arr: [],
+    const customArray = {
       head () { return this.arr[0]},
       tail () { return this.arr.slice(1)},
       init () { return this.arr.slice(0, -1)},
       last () { return this.arr.slice(-1)[0]}
-    });
-
-
-    const shape = (state) => {
-      return Object.assign(
-        Object.create(path),
-        customArray(),
-        pathTuning()
-        );
     };
 
 
-      const scene = shape({arr: []});
+    const shape = (state) => { //after all remove state...
+      return Object.assign(
+        Object.create(Object.assign(
+          Object.create(customArray), pathMethod)),
+        { arr: state.arr || []},
+        pathTuning()
+        );
+    };
+const test111 = [];
+      const scene = scrim();
+      scene.new({arr:[]});
+      // const scene = shape({arr: []});
 
-      const rect = {
-
+      const node = {
         color: '#ff0000',
         size: 5,
-        draggable: false,
+        draggable: false
+      };
+
+      const nodeMethod = {
 
         box () {
           let accuracy = 5 / mapping().z;
@@ -517,7 +568,7 @@
           }
         },
 
-        draw () {
+        draw (context) {
           let r = this.box();
           ctx.fillStyle = this.color;
           ctx.fillRect(r.left, r.top, this.size, this.size);
@@ -536,20 +587,21 @@
         }
       };
 
-      // first anchor aka 'adam'
+
       const moveDot = pos => {
         return Object.assign(
           lineDot(pos),
-          { path () {ctx.moveTo(this.x, this.y)} }
+          { path (context) { (ctx|| context).moveTo(this.x, this.y)} }
         );
       };
 
 
-    const curveMethod = {
-      curve (xy) { this.px = xy.x; this.py = xy.y; this.path(); },
-      path (context) {
-        (context || ctx).quadraticCurveTo( this.px, this.py, this.x, this.y)} 
-    };
+      const curveMethod = {
+        curve (xy) { this.px = xy.x; this.py = xy.y; this.path(); },
+        path (context) {
+          (context || ctx).quadraticCurveTo( this.px, this.py, this.x, this.y)} 
+      };
+
 
 
       const curveRect = (pos) => {
@@ -562,17 +614,14 @@
 
       const quadraticDot = pos => {
         let state = { px: pos.prev.x, py: pos.prev.y };
-        return Object.assign(
-          Object.create(curveRect(pos)),
-          state
-          );
+        return Object.assign(Object.create(curveRect(pos)), state);
       }
-
-      // second oject eva, but she is first :)
 
       const lineDot = pos => {
         let state = { x: pos.x, y: pos.y };
-        return Object.assign( Object.create(rect), state);
+        return Object.assign(Object.create(
+          Object.assign(Object.create(node), nodeMethod)),
+          state);
       };      
 
       const timerFn = (fn, ms) => {
@@ -649,6 +698,7 @@
 
         canvas.addEventListener('mousedown', (e) => {
             drag = scene.isDot(mouse) || scene.isLine(mouse);
+            if (drag) scene.turn(drag.path);
           // console.log(drag);
         });
 
@@ -659,8 +709,10 @@
         canvas.addEventListener('mousemove', e => {
           mouse = mouseXY(e);
           if (drag) {
+            console.log(drag);
             drag.elm[drag.method](mouse);
           } else {
+            if (scene.overmouse(mouse)) console.log(scene.overmouse(mouse));
             if (scene.isDot(mouse) || scene.isLine(mouse)) {
               canvas.style.cursor = 'pointer';
             } else {
@@ -804,6 +856,8 @@
       //     reset () { clear(a); clear(b); }        
       //   };
       // };
+
+      console.log('hello, there... \nif you have questions. \nyou can write me at\nandrei.fzto {meow} gmail.com')
     </script>
 
 
