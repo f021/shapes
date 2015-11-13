@@ -81,7 +81,7 @@
     }
 
     form[name=output] {
-      flex: 1 0 80%;
+      /*flex: 1 0 50%;*/
     }
 
     .partout {
@@ -153,9 +153,8 @@
     }
 
     fieldset[name="textarea"] {
-      flex: 1 0 90%;
+      flex: 1 0 50%;
     }
-
 
     textarea {
       display: block;
@@ -163,6 +162,7 @@
       width: 100%;
       height: auto;
       outline: none;
+      resize: none;
     }
 /*    .msg {
       position: fixed;
@@ -173,6 +173,19 @@
       text-align: center;
       /*width: 100%;*/
     }
+
+/*   input[type=color]{
+      width: 0.1px;
+      height: 0.1px;
+      opacity: 0;
+      overflow: hidden;
+      position: absolute;
+      z-index: -1;
+    }*/
+
+  .color {
+    height: 5px;
+  }
 
     
 
@@ -208,7 +221,7 @@
           <button type="button" name="save" disabled>save</button>
         </fieldset>
         <fieldset name="textarea">
-          <legend>for you:</legend>
+          <legend>your code:</legend>
           <textarea name="text" rows="10" readonly placeholder="// you code here"></textarea>
         </fieldset>
       </form><!-- history -->
@@ -238,9 +251,9 @@
 
           <fieldset name="map">
             <legend>Map</legend>
-            <label>x offset:<input type="range" name="offsetX" value="0"></label>
-            <label>y offset:<input type="range" name="offsetY" value="0"></label>
-            <label>zoom:<input type="range" name="zoom" min="1" max="3" step="0.1" value="1"></label>
+            <label>x offset:<span></span><input type="range" name="offsetX" value="0"></label>
+            <label>y offset:<span></span><input type="range" name="offsetY" value="0"></label>
+            <label>zoom:<span></span><input type="range" name="zoom" min="1" max="3" step="0.1" value="1"></label>
             <button type="button" name="reset">reset map</button>
           </fieldset>
 
@@ -254,24 +267,24 @@
           <fieldset name="show">
             <legend>show/hide</legend>
             <label><input type="checkbox" name="showImage" checked id="hello">image</label>
-            <label><input type="checkbox" name="showPath" checked>lines</label>
+            <label><input type="checkbox" name="showPath" checked>shapes</label>
             <label><input type="checkbox" name="showNodes" checked>nodes</label>
           </fieldset>
           <fieldset name="customize">
             <legend>tuning shape:</legend>
               <fieldset name="colors">
                 <legend>colors: </legend>
-                <label><input type="color" name="fillColor" value="#AFCAF6">fill</label>
-                <label><input type="color" name="pathColor" value="#FEF95D">line</label>
+                <label>fill: <input type="color" name="fillColor" id="fillColor" value="#AFCAF6"></label>
+                <label>path: <input type="color" name="pathColor" id="pathColor"  value="#FEF95D"></label>
               </fieldset>
               <fieldset>
                 <legend>width:</legend>
-                <label>line: <input type="range" name="lineWidth" min="0" max="10" value="1" step=".5" /></label>
+                <label>line: <span></span><input type="range" name="lineWidth" min="0" max="10" value="1" step=".5" /></label>
               </fieldset>
               <fieldset>
                 <legend>opacity:</legend>
-                <label>shape: <input type="range" name="shapeOpacity" min="0" max="1" value="1" step=".1"></label> 
-                <label>line: <input type="range" name="lineOpacity" min="0" max="1" value="1" step=".1"></label>   
+                <label>shape: <span></span><input type="range" name="shapeOpacity" min="0" max="1" value="1" step=".1"></label> 
+                <label>line: <span></span><input type="range" name="lineOpacity" min="0" max="1" value="1" step=".1"></label>   
               </fieldset>
           </fieldset>
         </form><!-- toolbox -->
@@ -335,14 +348,27 @@
         h: elm.clientHeight
       });
 
+
+        const initial = {
+        offsetX: 0,
+        offsetY: 0,
+        zoom: 1
+        };
+
       const btn = {
+
         create () {
           let obj = createCanvas(size(imgBox));
           canvas = obj.canvas;
           ctx = obj.ctx;
           listenCanvas();
         },
-        reset () { _('offsetX').value = 0; _('offsetY').value = 0; _('zoom').value = 1; },
+        reset () { 
+          Object.keys(initial).forEach( e => {
+            _(e).value = initial[e];
+            updateUI({target: _(e)});
+          });
+        },
         launch () { timerFn(draw, 1000/60).start(); },
         // undo () {scene.undo()},
         // redo () {scene.redo()}
@@ -370,6 +396,10 @@
 
 
       const path = {
+
+        // update() {
+        //   pathTuning 
+        // }
 
         show () {console.log(this.arr) },
 
@@ -439,21 +469,23 @@
       }
     };
 
+    const pathTuning = () => ({
+      fill: _('fillColor').value, 
+      line: _('lineWidth').value,
+      path: _('pathColor').value,
+    });
 
-
-
-    // const pathTuning = () => ({
-    //   fill: _('fillColor').value, 
-    //   line: _('lineWidth').value,
-    //   path: _('pathColor').value,
-    // });
+    const customArray = () => ({
+      arr: [],
+      last () { return this.arr.slice(-1)[0]}
+    });
 
 
     const shape = (state) => {
       return Object.assign(
         Object.create(path),
-        { arr: state.arr, last () { return state.arr.slice(-1)[0]} }
-        // pathTuning()
+        customArray(),
+        pathTuning()
         );
     };
 
@@ -492,7 +524,7 @@
         }
       };
 
-      // first dot aka 'adam'
+      // first anchor aka 'adam'
       const moveDot = pos => {
         return Object.assign(
           lineDot(pos),
@@ -516,6 +548,8 @@
           }
         );
       };
+
+      // second oject eva, but she is first :)
 
       const lineDot = pos => {
         let state = { x: pos.x, y: pos.y };
@@ -544,8 +578,22 @@
       document.body.addEventListener('click', e => {
         if (e.target.type === 'button') {
           btn[e.target.name]();
-        }
+        };
       });
+
+      document.body.addEventListener('mouseDown', e => {
+        if (e.target.name === 'color') {
+          $(`#${e.target.name}`).style.backgroundColor = e.target.value;
+        };
+      });
+
+      const updateUI = e => {
+        if (e.target.previousSibling) {
+          e.target.previousSibling.innerHTML = ` ${e.target.value}`;
+        }
+      }
+
+      document.body.addEventListener('change', updateUI);
 
 
       const mouseXY = e => {
