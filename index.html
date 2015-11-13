@@ -11,12 +11,14 @@
 
 
     html, body {
-      margin:0;
+      margin: 0;
+      padding: 0;
       height:100%;
       width: 100%;
       font-family: sans-serif;
       font-size: 1em;
     }
+
 
     form, fieldset {
       padding: 0;
@@ -29,6 +31,7 @@
       cursor: crosshair;
     }
 
+    
 
     .hide {
       display: none;
@@ -91,15 +94,17 @@
       display: block;
     }
 
-    form[name=coordinates] fieldset{
+/*    form[name=coordinates] fieldset{
+      width: 100%;
       display: flex;
       flex-direction: row;
       justify-content: space-around;
-    }
+    }*/
 
     fieldset {
       border: 1px solid rgba(0, 0, 0, .3);
       padding: 10px;
+      margin: 0;
     }
 
     legend {
@@ -138,14 +143,8 @@
 
     input[type=range] {
       width: 100%; 
-    }
-
-    fieldset[name=coordinates]{
-      flex-direction:row;
-    }
-
-        fieldset[name=coordinates] input{
-      display: inline-block;
+      padding: 0;
+      margin: 0;
     }
 
     fieldset[name=colors]{
@@ -170,9 +169,12 @@
     }*/
 
     fieldset[name=coordinates] input {
-      border: 0;
-      /*display: inline-block;*/
+      /*border: 0;*/
+      text-align: center;
+      /*width: 100%;*/
     }
+
+    
 
   </style>
 </head>
@@ -200,7 +202,7 @@
           <select>
             <option value="p5js">p5.js</option>
             <option value="array">array</option>
-            <option value="json">JSON</opton>
+            <option value="json">JSON</option>
           </select>
           <button type="button" name="copy" disabled>copy</button>
           <button type="button" name="save" disabled>save</button>
@@ -208,11 +210,6 @@
         <fieldset name="textarea">
           <legend>for you:</legend>
           <textarea name="text" rows="10" readonly placeholder="// you code here"></textarea>
-        </fieldset>
-        <fieldset>
-          <legend>history:</legend>
-          <button type="button" name="undo" disabled>undo</button>
-          <button type="button" name="redo"disabled>redo</button>
         </fieldset>
       </form><!-- history -->
     </section><!--#output-->    
@@ -233,16 +230,10 @@
     <section id="toolbox">
       <form name="toolbox">
         <fieldset name="coordinates">
-          <legend>Coordinates/Color:</legend>
-          <div class="wrap">
-            <label>width: <span></span></label>
-            <label>height: <span></span></label>
-          </div>
-          <div class="wrap">
-            <label>x: <span></span></label>
-            <label>y: <span></span></label>
-          </div>
-          <label>rgba: <span></span></label>
+          <legend>Size/Coordinates/Color:</legend>
+          <input type="text" name="size" value="w: , h:" readonly disabled/>
+          <input type="text" name="xy" value="x: , y:" readonly disabled/>
+          <input type="text" name="rgb" value="rgb:" readonly disabled/>
         </fieldset>
 
           <fieldset name="map">
@@ -295,7 +286,7 @@
 
 
 
-      let img, canvas, ctx ,draft, shadow;
+      let img, canvas, ctx, draft, shadow;
 
       const $ = str => document.querySelector(str);
       const _ = str => $(`input[name=${str}]`);
@@ -328,6 +319,7 @@
         imgBox.appendChild(canvas);
         imgBox.appendChild(draft);
         draft.className = "hide";
+        _('size').value = `w: ${canvas.width}, h: ${canvas.height}`;
         return {
           canvas,
           ctx
@@ -574,9 +566,8 @@
         let mouseOverCanvas = false;
 
         const updateXYRGB = () => {
-          _('x').value = mouse.x;
-          _('y').value = mouse.y;
-         _('rgb').value = pixelXY(mouse).slice(-3);
+          _('xy').value = `x: ${mouse.x}, y: ${mouse.y}`;
+         _('rgb').value = `rgb: ${pixelXY(mouse).slice(-3)}`;
         };
 
 
@@ -685,8 +676,8 @@
       a.w -= (a.h - b.h) * rate;
       a.h -= a.h - b.h;
     } 
-    a.w = Math.ceil(a.w);
-    a.h = Math.ceil(a.h);    
+    a.w = Math.floor(a.w);
+    a.h = Math.floor(a.h);    
     return a;
   
   }
