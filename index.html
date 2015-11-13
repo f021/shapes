@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>sketch-006: land wave</title>
+  <title>shaper</title>
   <style>
 
     * {
@@ -29,6 +29,7 @@
       cursor: crosshair;
     }
 
+
     .hide {
       display: none;
     }
@@ -41,13 +42,20 @@
       flex-wrap: no-wrap;
     }
 
+    section {
+      padding: 0 1%;
+      margin: auto;
+      height: 100%;
+      justify-content: center;
+    }
+
+
     section, form {
       display: flex;
       flex-direction: column;
     }
 
     .container section {
-      background-color: orange;
       flex: 1 0 15%;
       margin: auto;
     }
@@ -55,6 +63,7 @@
     #draw {
       flex: 1 0 70%;
       height: 100%;
+      padding: 0;
     }
 
     #draw form {
@@ -68,10 +77,101 @@
       /*position: relative;*/
     }
 
+    form[name=output] {
+      flex: 1 0 80%;
+    }
+
     .partout {
       height: 100%;
       margin: auto;
       background-color: green;
+    }
+
+    label {
+      display: block;
+    }
+
+    form[name=coordinates] fieldset{
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+    }
+
+    fieldset {
+      border: 1px solid rgba(0, 0, 0, .3);
+      padding: 10px;
+    }
+
+    legend {
+      color: rgba(0,0,0,.7);
+      text-transform: lowercase;
+      font-size: .6em;
+    }
+
+    label {
+      font-size: .6em;
+    }
+    
+    .inputfile {
+      width: 0.1px;
+      height: 0.1px;
+      opacity: 0;
+      overflow: hidden;
+      position: absolute;
+      z-index: -1;
+    }
+
+    .inputfile + label {
+      font-size: .4em;
+      padding: 2px 6px 3px 2px;
+      color: black;
+      border: 1px solid rgb(192, 192, 192);
+      border-radius: 10px;
+      background-color: white;
+      text-align: center;
+      /*display: inline-block;*/
+    }
+
+    .inputfile + label, button, input, label {
+      cursor: pointer;
+    }
+
+    input[type=range] {
+      width: 100%; 
+    }
+
+    fieldset[name=coordinates]{
+      flex-direction:row;
+    }
+
+        fieldset[name=coordinates] input{
+      display: inline-block;
+    }
+
+    fieldset[name=colors]{
+      display: flex;
+      flex-direction: row;
+    }
+
+    fieldset[name="textarea"] {
+      flex: 1 0 90%;
+    }
+
+
+    textarea {
+      display: block;
+      /*resize: none;*/
+      width: 100%;
+      height: auto;
+      outline: none;
+    }
+/*    .msg {
+      position: fixed;
+    }*/
+
+    fieldset[name=coordinates] input {
+      border: 0;
+      /*display: inline-block;*/
     }
 
   </style>
@@ -81,22 +181,38 @@
   <div class="container">
 
     <section id="output">
+      <form name="input">
+       <fieldset name="file">
+            <legend>file: </legend>
+              <input type="file" name="file" id="file" class="inputfile" />
+              <label for="file">Choose a file</label>
+          </fieldset>
+          <fieldset name='canvas'>
+            <legend>canvas:</legend>
+            <button type='button' name='create'>new canvas</button>
+            <button type='button' name='clear'>clear canvas</button>
+            <button type="button" name="launch">launch</button>
+          </fieldset>
+      </form>
       <form name="output">
         <fieldset name="type">
-          <legend>Output type</legend>
+          <legend>output:</legend>
           <select>
             <option value="p5js">p5.js</option>
             <option value="array">array</option>
             <option value="json">JSON</opton>
           </select>
-          <textarea name="output" disabled></textarea>
+          <button type="button" name="copy" disabled>copy</button>
+          <button type="button" name="save" disabled>save</button>
+        </fieldset>
+        <fieldset name="textarea">
+          <legend>for you:</legend>
+          <textarea name="text" rows="10" readonly placeholder="// you code here"></textarea>
         </fieldset>
         <fieldset>
+          <legend>history:</legend>
           <button type="button" name="undo" disabled>undo</button>
           <button type="button" name="redo"disabled>redo</button>
-          <button type="button" name="clear">clear</button>
-          <button type="button" name="copy" disabled>copy to clipboar</button>
-          <button type="button" name="save" disabled>save</button>
         </fieldset>
       </form><!-- history -->
     </section><!--#output-->    
@@ -112,62 +228,63 @@
           </div><!--.img-box-->
         </div><!--.img-wrapper-->
       </form><!-- img -->
-      <form name="coordinates">
-        <fieldset>
-          <legend>Coordinates/Colors</legend>
-          <label>x: <input type="text" name="x" disabled></label>
-          <label>y: <input type="text" name="y" disabled></label>
-          <label>rgba: <input type="text" name="rgb" disabled></label>
-        </fieldset>
-      </form><!--coordinates-->
     </section><!--#draw-->
 
     <section id="toolbox">
-        <form class="hide" name="map">
+      <form name="toolbox">
+        <fieldset name="coordinates">
+          <legend>Coordinates/Color:</legend>
+          <div class="wrap">
+            <label>width: <span></span></label>
+            <label>height: <span></span></label>
+          </div>
+          <div class="wrap">
+            <label>x: <span></span></label>
+            <label>y: <span></span></label>
+          </div>
+          <label>rgba: <span></span></label>
+        </fieldset>
+
           <fieldset name="map">
             <legend>Map</legend>
-            <label>x:<input type="range" name="offsetX" value="0"></label>
-            <label>y:<input type="range" name="offsetY" value="0"></label>
+            <label>x offset:<input type="range" name="offsetX" value="0"></label>
+            <label>y offset:<input type="range" name="offsetY" value="0"></label>
             <label>zoom:<input type="range" name="zoom" min="1" max="3" step="0.1" value="1"></label>
             <button type="button" name="reset">reset map</button>
           </fieldset>
-        </form>
-        <form name="toolbox">
-          <fieldset name="file">
-            <legend>File</legend>
-            <input type="file" id="file">
-          </fieldset>
-          <fieldset name='canvas'>
-            <button type='button' name='create'>new canvas</button>
-            <button type='button' name='clear'>clear canvas</button>
-            <button type="button" name="launch">launch</button>
-          </fieldset>
+
           <fieldset name="nodes">
             <legend>Nodes: </legend>
-            <label><input type="radio" name="node" value="line" checked>line</label>
-            <label><input type="radio" name="node" value="quadratic">curve</label>
-            <label><input type="checkbox" name="closePath">close path</label>
+            <label><input type="radio" name="node" value="line" checked />line</label>
+            <label><input type="radio" name="node" value="quadratic" />curve</label>
+            <label><input type="checkbox" name="closePath" />close path</label>
             <button type="button" name="new">new path</button>
           </fieldset>
           <fieldset name="show">
-            <legend>show/hide<legend>
+            <legend>show/hide</legend>
             <label><input type="checkbox" name="showImage" checked id="hello">image</label>
-            <label><input type="checkbox" name="showPath" checked>path</label>
+            <label><input type="checkbox" name="showPath" checked>lines</label>
             <label><input type="checkbox" name="showNodes" checked>nodes</label>
           </fieldset>
           <fieldset name="customize">
-            <legend>Custom colors:</legend>
-            <fieldset>
-              <legend>Nodes: </legend>
-              <label>line: <input type="color" name="lineColor"></label>
-              <label>quadratic: <input type="color" name="curveColor"></label> 
-            </fieldset>
-              <label>path: <input type="color" name="pathColor"></label>
-              <label>fill: <input type="color" name="fillColor"></label>
-              <label>line width: <input type="range" name="lineWidth" min="0" max="10" value="1" step=".5"></label>
+            <legend>tuning shape:</legend>
+              <fieldset name="colors">
+                <legend>colors: </legend>
+                <label><input type="color" name="fillColor" value="#AFCAF6">fill</label>
+                <label><input type="color" name="pathColor" value="#FEF95D">line</label>
+              </fieldset>
+              <fieldset>
+                <legend>width:</legend>
+                <label>line: <input type="range" name="lineWidth" min="0" max="10" value="1" step=".5" /></label>
+              </fieldset>
+              <fieldset>
+                <legend>opacity:</legend>
+                <label>shape: <input type="range" name="shapeOpacity" min="0" max="1" value="1" step=".1"></label> 
+                <label>line: <input type="range" name="lineOpacity" min="0" max="1" value="1" step=".1"></label>   
+              </fieldset>
           </fieldset>
         </form><!-- toolbox -->
-      </section><!--#toolbar-->
+      </section><!--#toolbox-->
 
   </div><!--.container-->
 
@@ -187,6 +304,7 @@
 
       // const imgBox = $('.img-box');
       const imgBox = $('form[name=img]');
+      // const imgBox = $('body');
       const imgBtn = $('input[type=file]');
 
       const error = '<h1>Hey</h1><p>I\'m understand only img file types...</p>';     
@@ -250,6 +368,15 @@
         quadratic (pos) { return quadraticDot(pos) }
       }
 
+      const toRGB = (hex) => {
+        let i = hex[0] === '#' && -1 || -2;
+        return () => {
+          i += 2;
+          return parseInt(hex.slice(i, i + 2), 16);
+        }
+      }
+
+
       const path = {
 
         show () {console.log(this.arr) },
@@ -275,12 +402,14 @@
         },
 
         drawPath () {
+          let ff = toRGB(_('pathColor').value);
+          let aa = toRGB(_('fillColor').value);
           ctx.beginPath();
-          // ctx.transform(1, 0, 0, 1, 0, _('offsetY').value);
-          ctx.strokeStyle = _('pathColor').value;
+          ctx.strokeStyle = `rgba(${ff()}, ${ff()}, ${ff()}, ${_('lineOpacity').value})`;
+          ctx.lineWidth = _('lineWidth').value;
           this.arr.forEach(elm => elm.path());
           if (_('closePath').checked) {
-            ctx.fillStyle = _('fillColor').value;
+            ctx.fillStyle = `rgba(${aa()}, ${aa()}, ${aa()}, ${_('shapeOpacity').value})`;
             ctx.fill();
             ctx.closePath();
           }
@@ -304,7 +433,7 @@
           if (len > 0) {
             for (let i = 1; i < len; i++){
               if (this.arr[i].draggable) {
-                shadow.lineWidth = 10;
+                shadow.lineWidth = 5;
                 shadow.beginPath();
                 shadow.moveTo(this.arr[i-1].x, this.arr[i-1].y);
                 this.arr[i].path(shadow);
@@ -321,18 +450,18 @@
 
 
 
-    const pathTuning = () => ({
-      fill: _('fillColor').value, 
-      line: _('lineWidth').value,
-      path: _('pathColor').value,
-    });
+    // const pathTuning = () => ({
+    //   fill: _('fillColor').value, 
+    //   line: _('lineWidth').value,
+    //   path: _('pathColor').value,
+    // });
 
 
     const shape = (state) => {
       return Object.assign(
         Object.create(path),
-        { arr: state.arr, last () { return state.arr.slice(-1)[0]} },
-        pathTuning()
+        { arr: state.arr, last () { return state.arr.slice(-1)[0]} }
+        // pathTuning()
         );
     };
 
@@ -342,14 +471,15 @@
       const rect = {
 
         color: '#ff0000',
-        size: 10,
+        size: 5,
         draggable: false,
         box () {
+          let accuracy = 5 / mapping().z;
           return {
-            left: this.x - this.size/2,
-            right: this.x + this.size/2,
-            top: this.y - this.size/2,
-            bottom: this.y + this.size/2
+            left: this.x - this.size/2 + accuracy,
+            right: this.x + this.size/2 + accuracy,
+            top: this.y - this.size/2 + accuracy,
+            bottom: this.y + this.size/2 + accuracy 
           }
         },
         draw () {
@@ -413,7 +543,6 @@
         scene.clear();
         ctx.setTransform(map.z, 0, 0, map.z, map.x, map.y);
         if (img && is('showImage')) {
-          // ctx.drawImage(img, map.x, map.y, canvas.width * map.z, canvas.height * map.z);
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         }
         if (is('showPath')) scene.drawPath(map);
@@ -436,15 +565,7 @@
         };
       };
 
-      const mousexy = e => {
-        let r = canvas.getBoundingClientRect(e);
-        return {
-          x: (e.clientX - Math.floor(r.left)),
-          y: (e.clientY - Math.floor(r.top))
-        };
-      };
-
-      const pixelXY = pos => ctx.getImageData(pos.x, pos.y, 1,1).data;
+      const pixelXY = pos => ctx.getImageData(pos.x, pos.y, 1, 1).data;
 
       const listenCanvas = () => {
 
@@ -455,14 +576,11 @@
         const updateXYRGB = () => {
           _('x').value = mouse.x;
           _('y').value = mouse.y;
-         _('rgb').value = pixelXY(mouse);
+         _('rgb').value = pixelXY(mouse).slice(-3);
         };
 
 
         canvas.addEventListener('click', e => {
-          if (e.altKey) {
-            return null;
-          }
           if (drag) {
             drag = undefined;
           } else {
@@ -472,50 +590,26 @@
         });
 
         canvas.addEventListener('mousedown', (e) => {
-          if (e.altKey) {
-            drag = { x: mousexy(e).x, y: mousexy(e).y, sx: _('offsetX').value, sy: _('offsetY').value} ;
-            console.log(drag);
-            // console.log('1', mouse);
-            return null;
-          } else {
             drag = scene.isDot(mouse) || scene.isLine(mouse);
-          }
           // console.log(drag);
         });
 
-        canvas.addEventListener('mouseup', (e) => {
-          if (drag && e.altKey) {
-            // drag = { x: mousexy(e).x, y: mousexy(e).y, sx: _('offsetX').value, sy: _('offsetY').value} ;
-            drag = undefined;
-          }
+        // canvas.addEventListener('mouseup', (e) => {
 
-        });
+        // });
 
         canvas.addEventListener('mousemove', e => {
           mouse = mouseXY(e);
-          if (e.altKey && drag) {
-            // console.log(drag.x, mousexy(e).x, drag.x - mousexy(e).x);
-              // _('offsetX').value = (mousexy(e).x - drag.x) / mapping().z;
-              // _('offsetY').value = (mousexy(e).y - drag.y) / mapping().z;
-
-             _('offsetX').value = drag.sx + (mousexy(e).x - drag.x);
-             _('offsetY').value = drag.sy + (mousexy(e).y - drag.y);
-              console.log('x',_('offsetX').value);
-              console.log('y',_('offsetY').value);
-              canvas.style.cursor = 'move';
+          if (drag) {
+            drag.elm[drag.method](mouse);
           } else {
-            if (drag) {
-              drag.elm[drag.method](mouse);
+            if (scene.isDot(mouse) || scene.isLine(mouse)) {
+              canvas.style.cursor = 'pointer';
             } else {
-              if (scene.isDot(mouse) || scene.isLine(mouse)) {
-                canvas.style.cursor = 'pointer';
-              } else {
-                canvas.style.cursor = 'crosshair';
-              };
+              canvas.style.cursor = 'crosshair';
             };
-                      updateXYRGB();
           };
-
+          updateXYRGB();
         });
 
         canvas.addEventListener('mouseover', () => {
@@ -619,7 +713,7 @@
     let size = fitSize(getSize(img),getSize(imgBox));
     createCanvas(size);
     ctx.drawImage(img, 0, 0, size.w, size.h);
-    document.forms.map.style.display = "block";
+    // document.forms.map.style.display = "block";
     setRange('input[name=offsetX]', size.w);
     setRange('input[name=offsetY]', size.h);
     listenCanvas();
