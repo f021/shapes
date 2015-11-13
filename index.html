@@ -469,6 +469,12 @@
       }
     };
 
+
+    const pattern = {
+
+    }
+
+
     const pathTuning = () => ({
       fill: _('fillColor').value, 
       line: _('lineWidth').value,
@@ -477,6 +483,9 @@
 
     const customArray = () => ({
       arr: [],
+      head () { return this.arr[0]},
+      tail () { return this.arr.slice(1)},
+      init () { return this.arr.slice(0, -1)},
       last () { return this.arr.slice(-1)[0]}
     });
 
@@ -497,6 +506,7 @@
         color: '#ff0000',
         size: 5,
         draggable: false,
+
         box () {
           let accuracy = 5 / mapping().z;
           return {
@@ -506,12 +516,14 @@
             bottom: this.y + this.size/2 + accuracy 
           }
         },
+
         draw () {
           let r = this.box();
           ctx.fillStyle = this.color;
           ctx.fillRect(r.left, r.top, this.size, this.size);
           return this;
         },
+
         moveDot (pos) {
           this.x = pos.x;
           this.y = pos.y;
@@ -532,22 +544,29 @@
         );
       };
 
-// pos = { x: x, y: y, prev: link to previus element }
+
+    const curveMethod = {
+      curve (xy) { this.px = xy.x; this.py = xy.y; this.path(); },
+      path (context) {
+        (context || ctx).quadraticCurveTo( this.px, this.py, this.x, this.y)} 
+    };
+
+
+      const curveRect = (pos) => {
+        return Object.assign(
+          Object.create(lineDot(pos)),
+            { color: 'green', draggable: true},
+            curveMethod
+          );
+      };
 
       const quadraticDot = pos => {
+        let state = { px: pos.prev.x, py: pos.prev.y };
         return Object.assign(
-          lineDot(pos),
-          { 
-            px: pos.prev.x,
-            py: pos.prev.y,
-            color: 'green',
-            draggable: true,
-            curve (xy) { this.px = xy.x; this.py = xy.y; this.path(); },
-            path (context) { (context || ctx).quadraticCurveTo( this.px, this.py, this.x, this.y)
-            }
-          }
-        );
-      };
+          Object.create(curveRect(pos)),
+          state
+          );
+      }
 
       // second oject eva, but she is first :)
 
@@ -752,7 +771,6 @@
     let size = fitSize(getSize(img),getSize(imgBox));
     createCanvas(size);
     ctx.drawImage(img, 0, 0, size.w, size.h);
-    // document.forms.map.style.display = "block";
     setRange('input[name=offsetX]', size.w);
     setRange('input[name=offsetY]', size.h);
     listenCanvas();
