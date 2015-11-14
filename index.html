@@ -31,8 +31,6 @@
       cursor: crosshair;
     }
 
-    
-
     .hide {
       display: none;
     }
@@ -208,6 +206,13 @@
             <button type='button' name='clear'>clear canvas</button>
             <button type="button" name="launch">launch</button>
           </fieldset>
+          <fieldset name="show">
+            <legend>show/hide</legend>
+            <label><input type="checkbox" name="showImage" checked id="hello">image</label>
+            <label><input type="checkbox" name="showShapes" checked>shapes</label>
+            <label><input type="checkbox" name="showCurrent" checked>current</label>
+            <label><input type="checkbox" name="showNodes" checked>nodes</label>
+          </fieldset>
       </form>
       <form name="output">
         <fieldset name="type">
@@ -261,33 +266,34 @@
             <legend>Nodes: </legend>
             <label><input type="radio" name="node" value="line" checked />line</label>
             <label><input type="radio" name="node" value="quadratic" />curve</label>
-            <label><input type="checkbox" name="closePath" />close path</label>
+          </fieldset>
+          <fieldset name="path">
+            <legend>path:</legend>
             <button type="button" name="newPath">new path</button>
-          </fieldset>
-          <fieldset name="show">
-            <legend>show/hide</legend>
-            <label><input type="checkbox" name="showImage" checked id="hello">image</label>
-            <label><input type="checkbox" name="showPath" checked>shapes</label>
-            <label><input type="checkbox" name="showNodes" checked>nodes</label>
-          </fieldset>
-          <fieldset name="customize">
-            <legend>tuning shape:</legend>
-              <fieldset name="colors">
-                <legend>colors: </legend>
-                <label>fill: <input type="color" name="fillColor" id="fillColor" value="#AFCAF6"></label>
-                <label>path: <input type="color" name="pathColor" id="pathColor"  value="#FEF95D"></label>
-              </fieldset>
-              <fieldset>
-                <legend>width:</legend>
-                <label>line: <span></span><input type="range" name="lineWidth" min="0" max="10" value="1" step=".5" /></label>
-              </fieldset>
-              <fieldset>
-                <legend>opacity:</legend>
-                <label>shape: <span></span><input type="range" name="shapeOpacity" min="0" max="1" value="1" step=".1"></label> 
-                <label>line: <span></span><input type="range" name="lineOpacity" min="0" max="1" value="1" step=".1"></label>   
-              </fieldset>
+            <button type="button" name="delPath">del path</button>
+            <label>fixed path:<input type="checkbox" name="fixedCurrent" checked/></label>
           </fieldset>
         </form><!-- toolbox -->
+        <form name="customize">
+            <fieldset name="customize">
+              <legend>tuning shape:</legend>
+                <label><input type="checkbox" name="closePath" />close path</label>
+                <fieldset name="colors">
+                  <legend>colors: </legend>
+                  <label>fill: <input type="color" name="fillColor" id="fillColor" value="#AFCAF6"></label>
+                  <label>path: <input type="color" name="pathColor" id="pathColor"  value="#FEF95D"></label>
+                </fieldset>
+                <fieldset>
+                  <legend>width:</legend>
+                  <label>line: <span></span><input type="range" name="lineWidth" min="0" max="10" value="1" step=".5" /></label>
+                </fieldset>
+                <fieldset>
+                  <legend>opacity:</legend>
+                  <label>shape: <span></span><input type="range" name="shapeOpacity" min="0" max="1" value="1" step=".1"></label> 
+                  <label>line: <span></span><input type="range" name="lineOpacity" min="0" max="1" value="1" step=".1"></label>   
+                </fieldset>
+            </fieldset>
+          </form>
       </section><!--#toolbox-->
 
   </div><!--.container-->
@@ -372,9 +378,8 @@
         launch () { timerFn(draw, 1000/60).start(); },
         // undo () {scene.undo()},
         // redo () {scene.redo()}
-        newPath() { scene.new();
-
-        }
+        newPath() { scene.newPath(); },
+        delPath() { scene.delPath(); }
       };
 
       const mapping = () => ({
@@ -395,14 +400,14 @@
           i += 2;
           return parseInt(hex.slice(i, i + 2), 16);
         }
-      }
+      };
 
 
       const pathMethod = {
 
         // update (colors) {
           
-        // }
+        // },
 
         show () {console.log(this.arr) },
 
@@ -423,14 +428,14 @@
         },
 
         drawPath () {
-          let ff = toRGB(_('pathColor').value);
-          let aa = toRGB(_('fillColor').value);
+          let ff = toRGB(this.pathColor);
+          let aa = toRGB(this.fillColor);
           ctx.beginPath();
-          ctx.strokeStyle = `rgba(${ff()}, ${ff()}, ${ff()}, ${_('lineOpacity').value})`;
-          ctx.lineWidth = _('lineWidth').value;
+          ctx.strokeStyle = `rgba(${ff()}, ${ff()}, ${ff()}, ${this.lineOpacity})`;
+          ctx.lineWidth = this.lineWidth;
           this.arr.forEach(elm => elm.path());
-          if (_('closePath').checked) {
-            ctx.fillStyle = `rgba(${aa()}, ${aa()}, ${aa()}, ${_('shapeOpacity').value})`;
+          if (this.closePath) {
+            ctx.fillStyle = `rgba(${aa()}, ${aa()}, ${aa()}, ${this.shapeOpacity})`;
             ctx.fill();
             ctx.closePath();
           }
@@ -438,7 +443,7 @@
         },
 
         shadowPath (t) {
-          shadow.lineWidth = 10;
+          shadow.lineWidth = 5;
           shadow.beginPath();
           this.arr.forEach(e => e.path(shadow));
           if (shadow.isPointInStroke(t.x, t.y)) {
@@ -446,6 +451,10 @@
           } else {
             return false;
           }
+        },
+
+        delNode (elm) {
+          this.arr.splice(this.arr.indexOf(elm),1);
         },
 
         isDot (target) {
@@ -460,11 +469,12 @@
           }
         },
 
-        isLine (target, flag=true) {
+        isLine (target, flag) {
+          flag = flag || true;
           let len = this.arr.length;
           if (len > 0) {
             for (let i = 1; i < len; i++){
-              if (this.arr[i].draggable && flag) {
+              if (this.arr[i].draggable) {
                 shadow.lineWidth = 5;
                 shadow.beginPath();
                 shadow.moveTo(this.arr[i-1].x, this.arr[i-1].y);
@@ -482,52 +492,81 @@
     const test222 =[]; /////////
 
 
+    const pathTuning = () => ({
+      fillColor: _('fillColor').value, 
+      lineWidth: _('lineWidth').value,
+      pathColor: _('pathColor').value,
+      lineWidth: _('lineWidth').value,
+      closePath: is('closePath'),
+      shapeOpacity: _('shapeOpacity').value,
+      lineOpacity: _('lineOpacity').value
+    });
+
     const scrim = (state) => {
       let arr = [];
       let current = undefined;
-      let overmouse = undefined;
+      // let overmouse = undefined;
 
       let method = {
+
+
+        update (e) { current[e.target.name] = e.target.value; console.log(e.target.value)},
+        
         clear () { ctx.clearRect(0,0, canvas.width, canvas.height)},
-        new () { arr.push(shape({arr:[]})); current=arr.slice(-1)[0]; console.log(current)},  // push in arr new path object
-        add (elm) { current.add(elm); console.log(current);},
-        drawPath () { arr.forEach(e => e.drawPath()) },
-        // turn (elm) { current = elm.path },
-        // drawRect () { arr.forEach(e => e.drawRect()) },
-        drawRect () { current.drawRect() },
-        current () { console.log(current); return arr[current]; },
-        isDot (t) { 
-          let s = arr.map(e => e.isDot(t));
-          if (!s.length) return false;
-          s = s.filter(e => e !==false )[0];
-          console.log(s);
-          // current = s.path;
-          return s;
+        
+        newPath () { arr.push(shape({arr:[]}));
+          current=arr.slice(-1)[0];},  // push in arr new path object
+        
+        add (elm) { current.add(elm); },
+        
+        drawPath () { 
+          if (is('showShapes')) {
+            arr.forEach(e => e.drawPath());
+          } else {
+            current.drawPath();
+          };
         },
-        isLine (t) { 
-          let s = arr.map(e => e.isLine(t));
-          if(!s.length) return false;
-          return s.filter(e => e !== false)[0];
+
+        // turn (elm) { current = elm.path },
+
+        delPath () { 
+          arr.splice(arr.indexOf(current),1);
+          if (!arr.length) {
+            btn.newPath();
+          } else {
+            current = arr.slice(-1)[0];
+          };
+        },
+
+        drawRect () { current.drawRect() },
+
+        isDot (t) { return current.isDot(t);
+
+        },
+        isLine (t) { return current.isLine(t)
+
         },
         overmouse (t) {
-          let a = arr.filter(e => e !== current)
-          .map(e => e.isLine(t, true))[0];
-          if (a) current = a;
-        }
+          if (!current.arr.length) {
+            return false;
+          } else {
+            let search = arr.filter(e => e.shadowPath(t))[0];
+              if (search) {
+                current = search;
+                return current;
+              } else {
+                return false;
+              }
+            };
+        },
+
+        show() {console.log(current)},
+        get () {return current}
       };
 
       return  method;
     }
-      
 
-
-    const pathTuning = () => ({
-      colors: {
-        fill: _('fillColor').value, 
-        line: _('lineWidth').value,
-        path: _('pathColor').value,
-      }
-    });
 
     const customArray = {
       head () { return this.arr[0]},
@@ -545,9 +584,9 @@
         pathTuning()
         );
     };
-const test111 = [];
+
       const scene = scrim();
-      scene.new({arr:[]});
+      scene.newPath({arr:[]});
       // const scene = shape({arr: []});
 
       const node = {
@@ -568,7 +607,7 @@ const test111 = [];
           }
         },
 
-        draw (context) {
+        draw () {
           let r = this.box();
           ctx.fillStyle = this.color;
           ctx.fillRect(r.left, r.top, this.size, this.size);
@@ -591,7 +630,7 @@ const test111 = [];
       const moveDot = pos => {
         return Object.assign(
           lineDot(pos),
-          { path (context) { (ctx|| context).moveTo(this.x, this.y)} }
+          { path (context) { (context || ctx).moveTo(this.x, this.y)} }
         );
       };
 
@@ -639,7 +678,7 @@ const test111 = [];
         if (img && is('showImage')) {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         }
-        if (is('showPath')) scene.drawPath(map);
+        if (is('showCurrent')) scene.drawPath(map);
         if (is('showNodes')) scene.drawRect();
       };
 
@@ -649,11 +688,11 @@ const test111 = [];
         };
       });
 
-      document.body.addEventListener('mouseDown', e => {
-        if (e.target.name === 'color') {
-          $(`#${e.target.name}`).style.backgroundColor = e.target.value;
-        };
-      });
+      // document.body.addEventListener('mouseDown', e => {
+      //   if (e.target.name === 'color') {
+      //     $(`#${e.target.name}`).style.backgroundColor = e.target.value;
+      //   };
+      // });
 
       const updateUI = e => {
         if (e.target.previousSibling) {
@@ -661,8 +700,11 @@ const test111 = [];
         }
       }
 
-      document.body.addEventListener('change', updateUI);
-
+      document.body.addEventListener('input', updateUI);
+      document.forms.customize.addEventListener('input', scene.update);
+      document.forms.customize.addEventListener('change', e => {
+        if (e.target.name === 'closePath') scene.get().closePath = e.target.checked;
+      });
 
       const mouseXY = e => {
         let r = canvas.getBoundingClientRect(e);
@@ -680,6 +722,8 @@ const test111 = [];
         let mouse;
         let drag = undefined;
         let mouseOverCanvas = false;
+        let mouseOverLine = undefined;
+        let mouseOverElm = undefined;
 
         const updateXYRGB = () => {
           _('xy').value = `x: ${mouse.x}, y: ${mouse.y}`;
@@ -688,6 +732,17 @@ const test111 = [];
 
 
         canvas.addEventListener('click', e => {
+
+          if (e.shiftKey && mouseOverLine) {
+            scene.delPath(mouseOverLine);
+            return null;
+          }
+
+          if (e.altKey && drag.method === "moveDot") {
+            drag.path.delNode(drag.elm);
+            drag = undefined;
+            return null;
+          }
           if (drag) {
             drag = undefined;
           } else {
@@ -697,8 +752,8 @@ const test111 = [];
         });
 
         canvas.addEventListener('mousedown', (e) => {
-            drag = scene.isDot(mouse) || scene.isLine(mouse);
-            if (drag) scene.turn(drag.path);
+          drag = mouseOverElm;
+            // if (drag) scene.turn(drag.path);
           // console.log(drag);
         });
 
@@ -709,11 +764,13 @@ const test111 = [];
         canvas.addEventListener('mousemove', e => {
           mouse = mouseXY(e);
           if (drag) {
-            console.log(drag);
             drag.elm[drag.method](mouse);
           } else {
-            if (scene.overmouse(mouse)) console.log(scene.overmouse(mouse));
-            if (scene.isDot(mouse) || scene.isLine(mouse)) {
+            if (!is('fixedCurrent')) {
+              mouseOverLine = scene.overmouse(mouse);
+            }
+            mouseOverElm = scene.isDot(mouse) || scene.isLine(mouse)
+            if (mouseOverElm) {
               canvas.style.cursor = 'pointer';
             } else {
               canvas.style.cursor = 'crosshair';
