@@ -7,6 +7,7 @@
 
     * {
       box-sizing: border-box;
+      outline: none;
     }
 
 
@@ -48,6 +49,7 @@
       margin: auto;
       height: 100%;
       justify-content: center;
+      flex-wrap: wrap;
     }
 
 
@@ -56,13 +58,18 @@
       flex-direction: column;
     }
 
-    .container section {
+    #toolbox {
+      flex: 1 0 20%;
+      /*margin: auto;*/
+    }
+
+    #output {
       flex: 1 0 15%;
       margin: auto;
     }
 
     #draw {
-      flex: 1 0 70%;
+      flex: 1 0 65%;
       height: 100%;
       padding: 0;
     }
@@ -76,6 +83,43 @@
       flex: 1 0 90%;
       display: flex;
       /*position: relative;*/
+    }
+
+    button {
+      outline: none;
+    }
+
+    body {
+      /*background-color: #95a6a5;*/
+      /*background-color: #788c8d;*/
+      /*background-color: #34495e;*/
+      background-color: #ecf0f1;
+    }
+
+    fieldset {
+      background-color: white;
+    }
+
+    .ok {
+      background-color: green;
+      color: white;
+      border: 1px solid green;
+      border-radius: 5px;  
+    }
+
+    .danger {
+      background-color: red;
+      color: white;
+      border: 1px solid red;
+      border-radius: 5px;
+    }
+
+
+    .info {
+      background-color: DodgerBlue;
+      color: white;
+      border: 1px solid DodgerBlue;
+      border-radius: 5px;
     }
 
     form[name=output] {
@@ -105,14 +149,34 @@
       margin: 0;
     }
 
-    legend {
-      color: rgba(0,0,0,.7);
+    form > fieldset {
+      margin-bottom: 5px;
+    }
+
+    form > fieldset > legend {
+      /*color: rgba(0,0,0,.7);*/
+      color: white;
+      background-color: rgba(0, 0, 0, .8);
+      text-transform: lowercase;
+      font-size: .6em;
+      padding: 2px 5px;
+    }
+
+    fieldset > legend {
+      color: black;
+      background-color: white;
       text-transform: lowercase;
       font-size: .6em;
     }
 
+
     label {
       font-size: .6em;
+    }
+
+    .no-border {
+      padding: 5px 0;
+      border: none;
     }
     
     .inputfile {
@@ -156,20 +220,16 @@
 
     textarea {
       display: block;
-      /*resize: none;*/
       width: 100%;
       height: auto;
       outline: none;
       resize: none;
     }
-/*    .msg {
-      position: fixed;
-    }*/
+
 
     fieldset[name=coordinates] input {
-      /*border: 0;*/
       text-align: center;
-      /*width: 100%;*/
+
     }
 
 /*   input[type=color]{
@@ -185,7 +245,17 @@
     height: 5px;
   }
 
-    
+  .flex {
+    display: flex;
+  }
+
+  .row {
+    flex-direction: row;
+  }
+
+  input[type=text] {
+    width: 100%;
+  }
 
   </style>
 </head>
@@ -194,24 +264,36 @@
   <div class="container">
 
     <section id="output">
+
+      <form name="coordinates">      
+        <fieldset name="coordinates">
+          <legend>info:</legend>
+          <input type="text" name="size" value="w: , h:" readonly disabled/>
+          <input type="text" name="xy" value="x: , y:" readonly disabled/>
+          <input type="text" name="rgb" value="rgb:" readonly disabled/>
+        </fieldset>
+      </form><!--coordinates-->
+
       <form name="input">
        <fieldset name="file">
-            <legend>file: </legend>
-              <input type="file" name="file" id="file" class="inputfile" />
-              <label for="file">Choose a file</label>
-          </fieldset>
-          <fieldset name='canvas'>
-            <legend>canvas:</legend>
-            <button type='button' name='create'>new canvas</button>
-            <button type='button' name='clear'>clear canvas</button>
-            <button type="button" name="launch">launch</button>
-          </fieldset>
+          <legend>file: </legend>
+          <input type="file" name="file" id="file" class="inputfile" />
+          <label for="file">Choose a file</label>
+        </fieldset>
+        <fieldset name='canvas'>
+          <legend>canvas:</legend>
+          <button class="ok" type='button' name='create'>new</button>
+          <button class="danger" type='button' name='clear'>clear</button>
+          <button class="info" type="button" name="launch">launch</button>
+        </fieldset>
           <fieldset name="show">
             <legend>show/hide</legend>
-            <label><input type="checkbox" name="showImage" checked id="hello">image</label>
-            <label><input type="checkbox" name="showShapes" checked>shapes</label>
-            <label><input type="checkbox" name="showCurrent" checked>current</label>
-            <label><input type="checkbox" name="showNodes" checked>nodes</label>
+            <div classs="flex row">
+              <label><input type="checkbox" name="showImage" checked>image</label>
+              <label><input type="checkbox" name="showCurrent" checked>current spape<span class="hotkey">(c)</span></label>
+              <label><input type="checkbox" name="showShapes" checked>other shapes<span class="hotkey">(v)</span></label>
+              <label><input type="checkbox" name="showNodes" checked>nodes</label>
+            </div>
           </fieldset>
       </form>
       <form name="output">
@@ -224,6 +306,7 @@
           </select>
           <button type="button" name="copy" disabled>copy</button>
           <button type="button" name="save" disabled>save</button>
+          <label><input type="checkbox" name="withColor" checked>with color</label>
         </fieldset>
         <fieldset name="textarea">
           <legend>your code:</legend>
@@ -247,51 +330,64 @@
 
     <section id="toolbox">
       <form name="toolbox">
-        <fieldset name="coordinates">
-          <legend>Size/Coordinates/Color:</legend>
-          <input type="text" name="size" value="w: , h:" readonly disabled/>
-          <input type="text" name="xy" value="x: , y:" readonly disabled/>
-          <input type="text" name="rgb" value="rgb:" readonly disabled/>
-        </fieldset>
 
           <fieldset name="map">
-            <legend>Map</legend>
+            <legend>navigator</legend>
             <label>x offset:<span></span><input type="range" name="offsetX" value="0"></label>
             <label>y offset:<span></span><input type="range" name="offsetY" value="0"></label>
             <label>zoom:<span></span><input type="range" name="zoom" min="1" max="3" step="0.1" value="1"></label>
-            <button type="button" name="reset">reset map</button>
+            <button class="danger" type="button" name="reset">reset map</button>
           </fieldset>
 
           <fieldset name="nodes">
             <legend>Nodes: </legend>
-            <label><input type="radio" name="node" value="line" checked />line</label>
-            <label><input type="radio" name="node" value="quadratic" />curve</label>
+            <label><input type="radio" name="node" value="line" checked id="nodeLine"/>line <span class="hotkey">(q)</span></label>
+            <label><input type="radio" name="node" value="quadratic" id="nodeCurve"/>curve <span class="hotkey">(e)</span></label>
           </fieldset>
+
           <fieldset name="path">
             <legend>path:</legend>
-            <button type="button" name="newPath">new path</button>
-            <button type="button" name="delPath">del path</button>
-            <label>fixed path:<input type="checkbox" name="fixedCurrent" checked/></label>
+            <button class="ok" type="button" name="newPath">new <span class="hotkey">(r)</span></button>
+            <button class="danger" type="button" name="delPath">del <span class="hotkey">(x)</span></button>
+            <fieldset class="no-border">
+              <button class="info" type="button" name="nextPath">next <span class="hotkey">(a)</span></button>
+              <button class="info" type="button" name="prevPath">prev <span class="hotkey">(d)</span></button>
+            </fieldset>
+            <label>autodetect path: <span class="hotkey">(spacebar)</span><input type="checkbox" name="fixedCurrent"/></label>
           </fieldset>
+
         </form><!-- toolbox -->
         <form name="customize">
+
             <fieldset name="customize">
               <legend>tuning shape:</legend>
-                <label><input type="checkbox" name="closePath" />close path</label>
-                <fieldset name="colors">
-                  <legend>colors: </legend>
-                  <label>fill: <input type="color" name="fillColor" id="fillColor" value="#AFCAF6"></label>
-                  <label>path: <input type="color" name="pathColor" id="pathColor"  value="#FEF95D"></label>
-                </fieldset>
-                <fieldset>
-                  <legend>width:</legend>
-                  <label>line: <span></span><input type="range" name="lineWidth" min="0" max="10" value="1" step=".5" /></label>
-                </fieldset>
-                <fieldset>
-                  <legend>opacity:</legend>
-                  <label>shape: <span></span><input type="range" name="shapeOpacity" min="0" max="1" value="1" step=".1"></label> 
-                  <label>line: <span></span><input type="range" name="lineOpacity" min="0" max="1" value="1" step=".1"></label>   
-                </fieldset>
+              <fieldset name="ou">
+                <legend>position</legend>
+                <button class="info" type="button"name="pathOver">over <span class="hotkey">(w)</span></button>
+                <button class="info" type="button" name="pathUnder">under <span class="hotkey">(u)</span></button>
+              </fieldset>
+              <fieldset>
+                <legend>path</legend>
+                  <label><input type="checkbox" name="closePath" />close</label>  
+                  <label><input type="checkbox" name ="fillPath" />fill</label>
+              </fieldset>
+              <fieldset name="colors">
+                <legend>colors: </legend>
+                <label>line: <input type="color" name="pathColor" id="pathColor"  value="#000000"></label>
+                <label>fill: <input type="color" name="fillColor" id="fillColor" value="#CCCCCC"></label>
+              </fieldset>
+          
+              <fieldset>
+                <legend>line:</legend>
+                <label>width:<span></span><input type="range" name="lineWidth" min="0.1" max="10" value="1" step=".1" /></label>
+              </fieldset>
+          
+              <fieldset>
+                <legend>opacity:</legend>
+                <label>shape: <span></span><input type="range" name="shapeOpacity" min="0" max="1" value="1" step=".1"></label> 
+                <label>line: <span></span><input type="range" name="lineOpacity" min="0" max="1" value="1" step=".1"></label>   
+              </fieldset>
+
             </fieldset>
           </form>
       </section><!--#toolbox-->
@@ -309,7 +405,6 @@
 
       const $ = str => document.querySelector(str);
       const _ = str => $(`input[name=${str}]`);
-
       const is = str => _(str).checked;
 
       // const imgBox = $('.img-box');
@@ -362,7 +457,6 @@
       };
 
       const btn = {
-
         create () {
           let obj = createCanvas(size(imgBox));
           canvas = obj.canvas;
@@ -376,10 +470,12 @@
           });
         },
         launch () { timerFn(draw, 1000/60).start(); },
-        // undo () {scene.undo()},
-        // redo () {scene.redo()}
-        newPath() { scene.newPath(); },
-        delPath() { scene.delPath(); }
+        newPath () { scene.newPath(); },
+        delPath () { scene.delPath(); },
+        pathOver () { scene.pathOver(); },
+        pathUnder () { scene.pathUnder(); },
+        prevPath () { scene.prevPath(); },
+        nextPath () { scene.nextPath(); }
       };
 
       const mapping = () => ({
@@ -412,7 +508,7 @@
         show () {console.log(this.arr) },
 
         drawRect () {
-          this.arr.forEach(elm => elm.draw());
+          this.arr.forEach(elm => { ctx.beginPath(); elm.draw()});
         },
 
         add (pos) {
@@ -435,10 +531,12 @@
           ctx.lineWidth = this.lineWidth;
           this.arr.forEach(elm => elm.path());
           if (this.closePath) {
-            ctx.fillStyle = `rgba(${aa()}, ${aa()}, ${aa()}, ${this.shapeOpacity})`;
-            ctx.fill();
+            if (this.fillPath) {
+              ctx.fillStyle = `rgba(${aa()}, ${aa()}, ${aa()}, ${this.shapeOpacity})`;
+              ctx.fill();
+            };
             ctx.closePath();
-          }
+          };
           ctx.stroke();
         },
 
@@ -446,6 +544,9 @@
           shadow.lineWidth = 5;
           shadow.beginPath();
           this.arr.forEach(e => e.path(shadow));
+          if (this.closePath) {
+            shadow.closePath();
+          };
           if (shadow.isPointInStroke(t.x, t.y)) {
             return this;
           } else {
@@ -453,19 +554,22 @@
           }
         },
 
+        write(type) {
+          let str = '';
+          // str = `this`
+          return this.arr.map(e => e.toString(type));
+        },
+
         delNode (elm) {
           this.arr.splice(this.arr.indexOf(elm),1);
         },
 
         isDot (target) {
-          let search = this.arr.filter(elm => target.x >= elm.box().left
-            && target.x <= elm.box().right && target.y >= elm.box().top 
-            && target.y <= elm.box().bottom
-          );
-          if (!search.length) {
+          let search = this.arr.filter(elm => len(elm, target) < elm.size)[0];
+          if (!search) {
             return false;
           } else {
-            return { path: this, elm: search[0], method: 'moveDot' };
+            return { path: this, elm: search, method: 'moveDot' };
           }
         },
 
@@ -489,7 +593,7 @@
       }
     };
 
-    const test222 =[]; /////////
+    // const test222 =[]; /////////
 
 
     const pathTuning = () => ({
@@ -497,37 +601,83 @@
       lineWidth: _('lineWidth').value,
       pathColor: _('pathColor').value,
       lineWidth: _('lineWidth').value,
-      closePath: is('closePath'),
       shapeOpacity: _('shapeOpacity').value,
-      lineOpacity: _('lineOpacity').value
+      lineOpacity: _('lineOpacity').value,
+      closePath: is('closePath'),
+      fillPath: is('fillPath'),
     });
 
     const scrim = (state) => {
       let arr = [];
       let current = undefined;
-      // let overmouse = undefined;
 
       let method = {
 
 
-        update (e) { current[e.target.name] = e.target.value; console.log(e.target.value)},
+        update (e) { current[e.target.name] = e.target.value; },
+
+        updateUI() { 
+          for (let elm in pathTuning()) {
+            _(elm).value = current[elm];
+          };
+          _('closePath').checked = current.closePath;
+          _('fillPath').checked = current.fillPath;
+        },
         
-        clear () { ctx.clearRect(0,0, canvas.width, canvas.height)},
+        clear () { ctx.clearRect(0,0, canvas.width, canvas.height); },
         
-        newPath () { arr.push(shape({arr:[]}));
-          current=arr.slice(-1)[0];},  // push in arr new path object
+        newPath () { arr.push(shape({arr:[]})); current = arr.slice(-1)[0];},  // push in arr new path object
         
         add (elm) { current.add(elm); },
-        
-        drawPath () { 
-          if (is('showShapes')) {
-            arr.forEach(e => e.drawPath());
-          } else {
-            current.drawPath();
-          };
+
+        pathOver () { 
+          let i = arr.indexOf(current);
+          if (i === arr.length - 1) return null;
+          arr.splice(i, 1);
+          arr.splice(i + 1, 0, current);
         },
 
-        // turn (elm) { current = elm.path },
+        pathUnder () {
+          let i = arr.indexOf(current);
+          if (i ===0 ) return null;
+          arr.splice(i, 1);
+          arr.splice(i - 1, 0, current);
+        },
+
+        nextPath () { 
+          let i = arr.indexOf(current);
+          if (i === arr.length - 1) {
+            current = arr[0];
+          } else {
+            current = arr[i + 1];
+          };
+          this.updateUI();
+        },
+
+        prevPath () { 
+          let i = arr.indexOf(current);
+          if (i===0) {
+            current = arr.slice(-1)[0];
+          } else {
+            current = arr[i-1];
+          };
+          this.updateUI();
+        },
+        
+        drawPath () {
+          if (is('showShapes')){
+            arr.forEach(e => e.drawPath());
+          } else {
+            if (is('showCurrent')) {
+              current.drawPath();
+            };
+          };
+          this.updateUI();
+        },
+
+        write(type) {
+          console.log(arr.map(e => e.write(type)).join(''));
+        },
 
         delPath () { 
           arr.splice(arr.indexOf(current),1);
@@ -540,19 +690,17 @@
 
         drawRect () { current.drawRect() },
 
-        isDot (t) { return current.isDot(t);
+        isDot (t) { return current.isDot(t); },
+        isLine (t) { return current.isLine(t); },
 
-        },
-        isLine (t) { return current.isLine(t)
-
-        },
         overmouse (t) {
-          if (!current.arr.length) {
+          if (!current.arr.length) { // ugly
             return false;
           } else {
             let search = arr.filter(e => e.shadowPath(t))[0];
               if (search) {
                 current = search;
+                this.updateUI();
                 return current;
               } else {
                 return false;
@@ -561,7 +709,7 @@
         },
 
         show() {console.log(current)},
-        get () {return current}
+        get () {return current} // ugly
       };
 
       return  method;
@@ -576,10 +724,27 @@
     };
 
 
+    const len = (a, b) => Math.sqrt(Math.pow(a.x-b.x, 2) + Math.pow(a.y-b.y, 2));
+
+    const pathTranslate = {
+      write: {
+        p5js: {
+          beginPath: 'beginShape',
+          closePath: 'endShape(CLOSE)',
+          lineWidth: 'strokeWeight',
+          end: 'endShape',
+          fillStyle: 'fill',
+          strikeStyle: 'stroke',
+          nostroke: 'nostroke',
+          nofill: 'noFill'
+        }
+      }
+    }
+
     const shape = (state) => { //after all remove state...
       return Object.assign(
         Object.create(Object.assign(
-          Object.create(customArray), pathMethod)),
+          Object.create(customArray), pathMethod, pathTranslate)),
         { arr: state.arr || []},
         pathTuning()
         );
@@ -591,14 +756,19 @@
 
       const node = {
         color: '#ff0000',
-        size: 5,
-        draggable: false
+        size: 10,
+        draggable: false,
+        toString (type) { return `${this.write[type]}(${this.x}, ${this.y});` },
+        write: {
+          p5js: `vertex`,
+          js: 'lineTo',
+        }
       };
 
       const nodeMethod = {
 
         box () {
-          let accuracy = 5 / mapping().z;
+          let accuracy = 0;
           return {
             left: this.x - this.size/2 + accuracy,
             right: this.x + this.size/2 + accuracy,
@@ -609,9 +779,9 @@
 
         draw () {
           let r = this.box();
-          ctx.fillStyle = this.color;
-          ctx.fillRect(r.left, r.top, this.size, this.size);
-          return this;
+          ctx.strokeStyle = this.color;
+          ctx.lineWidth = 0.5;
+          ctx.strokeRect(r.left, r.top, this.size, this.size);
         },
 
         moveDot (pos) {
@@ -630,7 +800,9 @@
       const moveDot = pos => {
         return Object.assign(
           lineDot(pos),
-          { path (context) { (context || ctx).moveTo(this.x, this.y)} }
+          { path (context) { (context || ctx).moveTo(this.x, this.y)} ,
+            write: { p5js: 'vertex', js: 'moveTo'}
+          }
         );
       };
 
@@ -646,7 +818,19 @@
       const curveRect = (pos) => {
         return Object.assign(
           Object.create(lineDot(pos)),
-            { color: 'green', draggable: true},
+            { color: 'red', draggable: true,
+              toString (type) { 
+                return `${this.write[type]}(${this.px}, ${this.py}, ${this.x}, ${this.y});` },
+              write: {
+                p5js: 'quadraticVertex',
+                js: 'quadraticCurveTo',
+              },
+              draw() {
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = .5;
+                ctx.arc(this.x, this.y, this.size/2, 0, 2*Math.PI);
+                ctx.stroke(); }
+             },
             curveMethod
           );
       };
@@ -678,13 +862,54 @@
         if (img && is('showImage')) {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         }
-        if (is('showCurrent')) scene.drawPath(map);
-        if (is('showNodes')) scene.drawRect();
+
+        scene.drawPath(map);
+        if (is('showNodes') && is('showCurrent')) scene.drawRect(map);
       };
 
       document.body.addEventListener('click', e => {
         if (e.target.type === 'button') {
           btn[e.target.name]();
+        };
+      });
+
+      document.body.addEventListener('keydown', e => {
+        switch (e.keyCode){
+          case 32:
+            _('fixedCurrent').checked = !_('fixedCurrent').checked;
+            break;
+          case 87: // w
+            btn.pathOver();
+            break;
+          case 83: // s
+            btn.pathUnder();
+            break;
+          case 68: // d
+            btn.nextPath();
+            break;
+          case 65: // a
+            btn.prevPath();
+            break;
+          case 81: // q
+            $('#nodeLine').checked = true;
+            break;
+          case 69: // e
+            $('#nodeCurve').checked = true;
+            break;
+          case 82: // r
+            btn.newPath();
+            break;
+          case 88:  // x
+            btn.delPath();
+            break;
+          case 86: // v
+            _('showShapes').checked = !is('showShapes');
+            break;
+          case 67: //c
+            _('showCurrent').checked = !is('showCurrent');
+            break;
+          default:
+            console.log(`pressed ${e.keyCode}`);
         };
       });
 
@@ -703,7 +928,8 @@
       document.body.addEventListener('input', updateUI);
       document.forms.customize.addEventListener('input', scene.update);
       document.forms.customize.addEventListener('change', e => {
-        if (e.target.name === 'closePath') scene.get().closePath = e.target.checked;
+        if (e.target.name === 'closePath') scene.get().closePath = e.target.checked; // ugly
+        if (e.target.name === 'fillPath') scene.get().fillPath = e.target.checked;
       });
 
       const mouseXY = e => {
@@ -766,7 +992,7 @@
           if (drag) {
             drag.elm[drag.method](mouse);
           } else {
-            if (!is('fixedCurrent')) {
+            if (is('fixedCurrent')) {
               mouseOverLine = scene.overmouse(mouse);
             }
             mouseOverElm = scene.isDot(mouse) || scene.isLine(mouse)
@@ -786,6 +1012,9 @@
         canvas.addEventListener('mouseout', () => {
           mouseOverCanvas = false;
         });
+
+
+        canvas.addEventListener('mousewheel', e => console.log(e.deltaY));
     }
 
 
