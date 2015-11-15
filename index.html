@@ -35,6 +35,10 @@
     .hide {
       display: none;
     }
+
+    .hidden {
+      visibility: hidden;
+    }
   
     .container {
       width: 100%;
@@ -48,7 +52,7 @@
       padding: 0 1%;
       margin: auto;
       height: 100%;
-      justify-content: center;
+      justify-content: flex-start;
       flex-wrap: wrap;
     }
 
@@ -123,10 +127,9 @@
       position: absolute;
       top: 0;
       right: 10px;
-      background-color: #FFBA10;
-      border-color: black;
-      border-style: dotted;
-      background-color: yellow;
+      font-size: .1em;
+      background-color: rgb(241, 196, 15);
+      border: 1px solid grey;
     }
 
     button .collapse:hover{
@@ -154,13 +157,6 @@
       display: inline-block;
     }
 
-/*    form[name=coordinates] fieldset{
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-      justify-content: space-around;
-    }*/
-
     fieldset {
       border: 1px solid rgba(0, 0, 0, .3);
       padding: 10px;
@@ -186,6 +182,13 @@
       text-transform: lowercase;
       font-size: .6em;
     }
+
+ *{
+  -webkit-transition: all 1s ease-in-out;
+  -moz-transition: all 1s ease-in-out;
+  -o-transition: all 1s ease-in-out;
+  transition: all 1s ease-in-out;
+}
 
 
     label {
@@ -227,13 +230,8 @@
       margin: 0;
     }
 
-    fieldset[name=colors]{
-      display: flex;
-      flex-direction: row;
-    }
-
     fieldset[name="textarea"] {
-      flex: 1 0 50%;
+      flex: 1 0 80%;
     }
 
     textarea {
@@ -243,7 +241,6 @@
       outline: none;
       resize: none;
     }
-
 
     fieldset[name=coordinates] input {
       text-align: center;
@@ -271,6 +268,7 @@
     flex-direction: row;
   }
 
+
   input[type=text] {
     width: 100%;
   }
@@ -282,9 +280,8 @@
   <div class="container">
 
     <section id="output">
-
       <form name="coordinates">      
-        <button  type="button" name="collapse" class="collapse">x</button>
+        <button  type="button" name="collapse" class="collapse">-</button>
         <fieldset name="coordinates">
           <legend>info:</legend>
           <input type="text" name="size" value="w: , h:" readonly disabled/>
@@ -294,20 +291,17 @@
       </form><!--coordinates-->
 
       <form name="input">
+       <button  type="button" name="collapse" class="collapse">-</button>
        <fieldset name="file">
           <legend>file: </legend>
           <input type="file" name="file" id="file" class="inputfile" />
           <label for="file">Choose a file</label>
-        </fieldset>
-        <fieldset name='canvas'>
-          <legend>canvas:</legend>
           <button class="ok" type='button' name='create'>new</button>
-          <button class="danger" type='button' name='clear'>clear</button>
           <button class="info" type="button" name="launch">launch</button>
         </fieldset>
-          <button  type="button" name="collapse" class="collapse">x</button>
       </form>
       <form>
+        <button  type="button" name="collapse" class="collapse">-</button>     
           <fieldset name="show">
             <legend>show/hide</legend>
             <div classs="flex row">
@@ -316,10 +310,10 @@
               <label><input type="checkbox" name="showShapes" checked>other shapes<span class="hotkey">(v)</span></label>
               <label><input type="checkbox" name="showNodes" checked>nodes</label>
             </div>
-          </fieldset>
-        <button  type="button" name="collapse" class="collapse">x</button>        
+          </fieldset>   
       </form>
       <form name="output">
+        <button  type="button" name="collapse" class="collapse">-</button>
         <fieldset name="type">
           <legend>output:</legend>
           <select>
@@ -331,14 +325,13 @@
           <button type="submit" name="save">save to file</button>
           <label><input type="checkbox" name="withColor" checked>with color</label>
         </fieldset>
-        <button  type="button" name="collapse" class="collapse">x</button>
       </form>
       <form>
+        <button  type="button" name="collapse" class="collapse">-</button>
         <fieldset name="textarea">
           <legend>your code:</legend>
           <textarea name="text" rows="10" readonly placeholder="// you code here"></textarea>
         </fieldset>
-        <button  type="button" name="collapse" class="collapse">x</button>
       </form><!-- history -->
     </section><!--#output-->    
 
@@ -358,6 +351,7 @@
     <section id="toolbox">
 
       <form name="toolbox">
+          <button  type="button" name="collapse" class="collapse">-</button>
           <fieldset name="map">
             <legend>navigator</legend>
             <label>x offset:<span></span><input type="range" name="offsetX" value="0"></label>
@@ -365,20 +359,19 @@
             <label>zoom:<span></span><input type="range" name="zoom" min="1" max="3" step="0.1" value="1"></label>
             <button class="danger" type="button" name="reset">reset map</button>
           </fieldset>
-          <button  type="button" name="collapse" class="collapse">x</button>
         </form>
 
         <form>
+          <button  type="button" name="collapse" class="collapse">-</button>
           <fieldset name="nodes">
             <legend>Nodes: </legend>
             <label><input type="radio" name="node" value="line" checked id="nodeLine"/>line <span class="hotkey">(q)</span></label>
             <label><input type="radio" name="node" value="quadratic" id="nodeCurve"/>curve <span class="hotkey">(e)</span></label>
-            <button  type="button" name="collapse" class="collapse">x</button>
           </fieldset>
-          <button  type="button" name="collapse" class="collapse">x</button>
         </form>
 
         <form>
+          <button  type="button" name="collapse" class="collapse">-</button>
           <fieldset name="path">
             <legend>path:</legend>
             <button class="ok" type="button" name="newPath">new <span class="hotkey">(r)</span></button>
@@ -388,19 +381,24 @@
               <button class="info" type="button" name="prevPath">prev <span class="hotkey">(d)</span></button>
             </fieldset>
             <label>autodetect path: <span class="hotkey">(spacebar)</span><input type="checkbox" name="fixedCurrent"/></label>
-            <button  type="button" name="collapse" class="collapse">x</button>
           </fieldset>
-          <button  type="button" name="collapse" class="collapse">x</button>
         </form><!-- toolbox -->
+
+
         <form name="customize">
 
+            <button  type="button" name="collapse" class="collapse">-</button>
+          
             <fieldset name="customize">
-              <legend>tuning shape:</legend>
+
+              <legend>tuning shape:</legend>       
+             
               <fieldset name="ou">
                 <legend>position</legend>
                 <button class="info" type="button"name="pathOver">over <span class="hotkey">(w)</span></button>
                 <button class="info" type="button" name="pathUnder">under <span class="hotkey">(u)</span></button>
               </fieldset>
+
               <fieldset>
                 <legend>path</legend>
                 <div class="flex row">
@@ -409,17 +407,16 @@
                   <label><input type="checkbox" name ="fillPath" />fill</label>
                 </div>
               </fieldset>
+
               <fieldset name="colors">
                 <legend>colors: </legend>
                 <label>line: <input type="color" name="pathColor" id="pathColor"  value="#000000"></label>
                 <label>fill: <input type="color" name="fillColor" id="fillColor" value="#CCCCCC"></label>
-                <button class="button" name="collapse" class="collapse">x</button>
               </fieldset>
           
               <fieldset>
                 <legend>line:</legend>
                 <label>width:<span></span><input type="range" name="lineWidth" min="0.1" max="10" value="1" step=".1" /></label>
-                <button class="button" name="collapse" class="collapse">x</button>
               </fieldset>
           
               <fieldset>
@@ -427,9 +424,11 @@
                 <label>shape: <span></span><input type="range" name="shapeOpacity" min="0" max="1" value="1" step=".1"></label> 
                 <label>line: <span></span><input type="range" name="lineOpacity" min="0" max="1" value="1" step=".1"></label> 
               </fieldset>
+
             </fieldset>
-            <button  type="button" name="collapse" class="collapse">x</button>
+
           </form>
+
       </section><!--#toolbox-->
 
   </div><!--.container-->
@@ -517,8 +516,15 @@
         prevPath () { scene.prevPath(); },
         nextPath () { scene.nextPath(); },
         save () { saveToFile(); },
-        copy () { copyToBuffer();}
-        collapse () { }
+        copy () { copyToBuffer();},
+        collapse (e) { let elm = e.target.nextElementSibling.children;
+          e.target.innerText = e.target.innerText === '+' && '-' || '+';
+          for (let i = 0; i < elm.length; i++) {
+            if ( elm[i].tagName !== 'LEGEND') {
+              elm[i].classList.toggle("hide");
+            }
+          } 
+        }
       };
 
       const mapping = () => ({
@@ -602,7 +608,7 @@
         toString(type) {
         let ff = toRGB(this.pathColor);
         let aa = toRGB(this.fillColor);
-        console.log(this.strokePath);
+        console.log(this.strokePath); /////// brainfuck string
         let str =
 `${!this.strokePath && 'noStroke();' 
 ||`stroke(${ ff() }, ${ ff() }, ${ ff() }, ${ Math.round(255 * this.lineOpacity) });`
