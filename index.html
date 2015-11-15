@@ -53,7 +53,7 @@
       margin: auto;
       height: 100%;
       justify-content: flex-start;
-      flex-wrap: wrap;
+      flex-wrap: no-wrap;
     }
 
 
@@ -78,9 +78,9 @@
       padding: 0;
     }
 
-    #draw form {
+/*    #draw form {
       flex: 1 0 auto;
-    }
+    }*/
 
     #draw form[name=img] {
       position: relative;
@@ -211,17 +211,25 @@
 
     .inputfile + label {
       font-size: .4em;
-      padding: 2px 6px 3px 2px;
-      color: black;
-      border: 1px solid rgb(192, 192, 192);
-      border-radius: 10px;
+      padding: 2px 6px 2px 6px;
+      border: 1px solid green;
+      margin: 1px;
+      border-radius: 5px;
       background-color: white;
       text-align: center;
+      background-color: green;
+      color:white;
+      text-transform: lowercase;
+      font-size: .6em;
       /*display: inline-block;*/
     }
 
     .inputfile + label, button, input, label {
       cursor: pointer;
+    }
+
+    form[name=youCode] {
+      flex: 1 0 auto;
     }
 
     input[type=range] {
@@ -239,22 +247,12 @@
       width: 100%;
       height: auto;
       outline: none;
-      resize: none;
+      /*resize: none;*/
     }
 
     fieldset[name=coordinates] input {
       text-align: center;
-
     }
-
-/*   input[type=color]{
-      width: 0.1px;
-      height: 0.1px;
-      opacity: 0;
-      overflow: hidden;
-      position: absolute;
-      z-index: -1;
-    }*/
 
   .color {
     height: 5px;
@@ -296,7 +294,7 @@
           <legend>file: </legend>
           <input type="file" name="file" id="file" class="inputfile" />
           <label for="file">Choose a file</label>
-          <button class="ok" type='button' name='create'>new</button>
+          <button class="ok" type='button' name='create'>new canvas</button>
           <button class="info" type="button" name="launch">launch</button>
         </fieldset>
       </form>
@@ -326,11 +324,11 @@
           <label><input type="checkbox" name="withColor" checked>with color</label>
         </fieldset>
       </form>
-      <form>
-        <button  type="button" name="collapse" class="collapse">-</button>
+      <form name="youCode">
+        <!-- <button  type="button" name="collapse" class="collapse">-</button> -->
         <fieldset name="textarea">
           <legend>your code:</legend>
-          <textarea name="text" rows="10" readonly placeholder="// you code here"></textarea>
+          <textarea name="text" rows="20" readonly placeholder="// you code here"></textarea>
         </fieldset>
       </form><!-- history -->
     </section><!--#output-->    
@@ -740,7 +738,8 @@ ${ this.closePath && 'endShape(CLOSE);' || 'endShape();'}\n`;
         },
 
         write(type) {
-          $('textarea').value = arr.map((e,i) => `// shape #${i}\n${e.toString(type)}`).join('\n');
+          $('textarea').value = `// createCanvas(${canvas.width}, ${canvas.height});\n
+${arr.map((e,i) => `// shape #${i}\n${e.toString(type)}`).join('\n')}`;
         },
 
         delPath () { 
