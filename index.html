@@ -115,6 +115,24 @@
     }
 
 
+    form {
+      position:relative;
+    }
+
+    .collapse {
+      position: absolute;
+      top: 0;
+      right: 10px;
+      background-color: #FFBA10;
+      border-color: black;
+      border-style: dotted;
+      background-color: yellow;
+    }
+
+    button .collapse:hover{
+      cursor: pointer;
+    }
+
     .info {
       background-color: DodgerBlue;
       color: white;
@@ -133,7 +151,7 @@
     }
 
     label {
-      display: block;
+      display: inline-block;
     }
 
 /*    form[name=coordinates] fieldset{
@@ -266,6 +284,7 @@
     <section id="output">
 
       <form name="coordinates">      
+        <button  type="button" name="collapse" class="collapse">x</button>
         <fieldset name="coordinates">
           <legend>info:</legend>
           <input type="text" name="size" value="w: , h:" readonly disabled/>
@@ -286,6 +305,9 @@
           <button class="danger" type='button' name='clear'>clear</button>
           <button class="info" type="button" name="launch">launch</button>
         </fieldset>
+          <button  type="button" name="collapse" class="collapse">x</button>
+      </form>
+      <form>
           <fieldset name="show">
             <legend>show/hide</legend>
             <div classs="flex row">
@@ -295,6 +317,7 @@
               <label><input type="checkbox" name="showNodes" checked>nodes</label>
             </div>
           </fieldset>
+        <button  type="button" name="collapse" class="collapse">x</button>        
       </form>
       <form name="output">
         <fieldset name="type">
@@ -304,14 +327,18 @@
             <option value="array">array</option>
             <option value="json">JSON</option>
           </select>
-          <button type="button" name="copy" disabled>copy</button>
-          <button type="button" name="save" disabled>save</button>
+          <button type="button" name="copy">copy to buffer</button>
+          <button type="submit" name="save">save to file</button>
           <label><input type="checkbox" name="withColor" checked>with color</label>
         </fieldset>
+        <button  type="button" name="collapse" class="collapse">x</button>
+      </form>
+      <form>
         <fieldset name="textarea">
           <legend>your code:</legend>
           <textarea name="text" rows="10" readonly placeholder="// you code here"></textarea>
         </fieldset>
+        <button  type="button" name="collapse" class="collapse">x</button>
       </form><!-- history -->
     </section><!--#output-->    
 
@@ -329,8 +356,8 @@
     </section><!--#draw-->
 
     <section id="toolbox">
-      <form name="toolbox">
 
+      <form name="toolbox">
           <fieldset name="map">
             <legend>navigator</legend>
             <label>x offset:<span></span><input type="range" name="offsetX" value="0"></label>
@@ -338,13 +365,20 @@
             <label>zoom:<span></span><input type="range" name="zoom" min="1" max="3" step="0.1" value="1"></label>
             <button class="danger" type="button" name="reset">reset map</button>
           </fieldset>
+          <button  type="button" name="collapse" class="collapse">x</button>
+        </form>
 
+        <form>
           <fieldset name="nodes">
             <legend>Nodes: </legend>
             <label><input type="radio" name="node" value="line" checked id="nodeLine"/>line <span class="hotkey">(q)</span></label>
             <label><input type="radio" name="node" value="quadratic" id="nodeCurve"/>curve <span class="hotkey">(e)</span></label>
+            <button  type="button" name="collapse" class="collapse">x</button>
           </fieldset>
+          <button  type="button" name="collapse" class="collapse">x</button>
+        </form>
 
+        <form>
           <fieldset name="path">
             <legend>path:</legend>
             <button class="ok" type="button" name="newPath">new <span class="hotkey">(r)</span></button>
@@ -354,8 +388,9 @@
               <button class="info" type="button" name="prevPath">prev <span class="hotkey">(d)</span></button>
             </fieldset>
             <label>autodetect path: <span class="hotkey">(spacebar)</span><input type="checkbox" name="fixedCurrent"/></label>
+            <button  type="button" name="collapse" class="collapse">x</button>
           </fieldset>
-
+          <button  type="button" name="collapse" class="collapse">x</button>
         </form><!-- toolbox -->
         <form name="customize">
 
@@ -368,27 +403,32 @@
               </fieldset>
               <fieldset>
                 <legend>path</legend>
+                <div class="flex row">
+                  <label><input type="checkbox" name="strokePath" checked/>stroke</label>  
                   <label><input type="checkbox" name="closePath" />close</label>  
                   <label><input type="checkbox" name ="fillPath" />fill</label>
+                </div>
               </fieldset>
               <fieldset name="colors">
                 <legend>colors: </legend>
                 <label>line: <input type="color" name="pathColor" id="pathColor"  value="#000000"></label>
                 <label>fill: <input type="color" name="fillColor" id="fillColor" value="#CCCCCC"></label>
+                <button class="button" name="collapse" class="collapse">x</button>
               </fieldset>
           
               <fieldset>
                 <legend>line:</legend>
                 <label>width:<span></span><input type="range" name="lineWidth" min="0.1" max="10" value="1" step=".1" /></label>
+                <button class="button" name="collapse" class="collapse">x</button>
               </fieldset>
           
               <fieldset>
                 <legend>opacity:</legend>
                 <label>shape: <span></span><input type="range" name="shapeOpacity" min="0" max="1" value="1" step=".1"></label> 
-                <label>line: <span></span><input type="range" name="lineOpacity" min="0" max="1" value="1" step=".1"></label>   
+                <label>line: <span></span><input type="range" name="lineOpacity" min="0" max="1" value="1" step=".1"></label> 
               </fieldset>
-
             </fieldset>
+            <button  type="button" name="collapse" class="collapse">x</button>
           </form>
       </section><!--#toolbox-->
 
@@ -475,7 +515,10 @@
         pathOver () { scene.pathOver(); },
         pathUnder () { scene.pathUnder(); },
         prevPath () { scene.prevPath(); },
-        nextPath () { scene.nextPath(); }
+        nextPath () { scene.nextPath(); },
+        save () { saveToFile(); },
+        copy () { copyToBuffer();}
+        collapse () { }
       };
 
       const mapping = () => ({
@@ -537,7 +580,9 @@
             };
             ctx.closePath();
           };
-          ctx.stroke();
+          if (this.strokePath) {
+            ctx.stroke();
+          }
         },
 
         shadowPath (t) {
@@ -554,10 +599,20 @@
           }
         },
 
-        write(type) {
-          let str = '';
-          // str = `this`
-          return this.arr.map(e => e.toString(type));
+        toString(type) {
+        let ff = toRGB(this.pathColor);
+        let aa = toRGB(this.fillColor);
+        console.log(this.strokePath);
+        let str =
+`${!this.strokePath && 'noStroke();' 
+||`stroke(${ ff() }, ${ ff() }, ${ ff() }, ${ Math.round(255 * this.lineOpacity) });`
++`\nstrokeWeight = ${ this.lineWidth };`}
+${!this.fillPath && 'noFill();'
+|| `fill(${ aa()}, ${ aa()}, ${ aa()}, ${ Math.round(255 * this.shapeOpacity) });`}
+beginShape();
+${ this.arr.map(e => e.toString('p5js')).join('\n') }
+${ this.closePath && 'endShape(CLOSE);' || 'endShape();'}\n`;
+          return str;
         },
 
         delNode (elm) {
@@ -605,6 +660,7 @@
       lineOpacity: _('lineOpacity').value,
       closePath: is('closePath'),
       fillPath: is('fillPath'),
+      strokePath: is('strokePath'),
     });
 
     const scrim = (state) => {
@@ -619,9 +675,11 @@
         updateUI() { 
           for (let elm in pathTuning()) {
             _(elm).value = current[elm];
+            _(elm).checked = current[elm];
           };
-          _('closePath').checked = current.closePath;
-          _('fillPath').checked = current.fillPath;
+          // _('closePath').checked = current.closePath; // ugly ..................................
+          // _('fillPath').checked = current.fillPath;
+          // _('stokePath').checked = current.strokePath;
         },
         
         clear () { ctx.clearRect(0,0, canvas.width, canvas.height); },
@@ -676,7 +734,7 @@
         },
 
         write(type) {
-          console.log(arr.map(e => e.write(type)).join(''));
+          $('textarea').value = arr.map((e,i) => `// shape #${i}\n${e.toString(type)}`).join('\n');
         },
 
         delPath () { 
@@ -723,8 +781,15 @@
       last () { return this.arr.slice(-1)[0]}
     };
 
-
+    const saveToFile = () => {
+          let filename = 'shape.js';
+          let text = $(textarea).value;
+          let blob = new Blob([text], {type: "text/plain;charset=utf-8"});
+          saveAs(blob, filename+".js");
+        };
+    
     const len = (a, b) => Math.sqrt(Math.pow(a.x-b.x, 2) + Math.pow(a.y-b.y, 2));
+
 
     const pathTranslate = {
       write: {
@@ -734,7 +799,7 @@
           lineWidth: 'strokeWeight',
           end: 'endShape',
           fillStyle: 'fill',
-          strikeStyle: 'stroke',
+          strokeStyle: 'stroke',
           nostroke: 'nostroke',
           nofill: 'noFill'
         }
@@ -744,7 +809,7 @@
     const shape = (state) => { //after all remove state...
       return Object.assign(
         Object.create(Object.assign(
-          Object.create(customArray), pathMethod, pathTranslate)),
+          Object.create(customArray), pathMethod)),
         { arr: state.arr || []},
         pathTuning()
         );
@@ -857,6 +922,7 @@
 
       const draw = () => {
         let map = mapping();
+        scene.write();
         scene.clear();
         ctx.setTransform(map.z, 0, 0, map.z, map.x, map.y);
         if (img && is('showImage')) {
@@ -869,7 +935,7 @@
 
       document.body.addEventListener('click', e => {
         if (e.target.type === 'button') {
-          btn[e.target.name]();
+          btn[e.target.name](e);
         };
       });
 
@@ -925,19 +991,21 @@
         }
       }
 
+
       document.body.addEventListener('input', updateUI);
       document.forms.customize.addEventListener('input', scene.update);
       document.forms.customize.addEventListener('change', e => {
-        if (e.target.name === 'closePath') scene.get().closePath = e.target.checked; // ugly
-        if (e.target.name === 'fillPath') scene.get().fillPath = e.target.checked;
+        if (e.target.name === 'closePath') scene.get().closePath = e.target.checked; // ugly .................
+        if (e.target.name === 'fillPath') scene.get().fillPath = e.target.checked; // .................
+        if (e.target.name === 'strokePath') scene.get().strokePath = e.target.checked; //.................
       });
 
       const mouseXY = e => {
         let r = canvas.getBoundingClientRect(e);
         let map = mapping();
         return {
-          x: (e.clientX - Math.floor(r.left))/map.z - map.x/map.z,
-          y: (e.clientY - Math.floor(r.top))/map.z - map.y/map.z
+          x: Math.round((e.clientX - Math.floor(r.left))/map.z - map.x/map.z),
+          y: Math.round((e.clientY - Math.floor(r.top))/map.z - map.y/map.z)
         };
       };
 
