@@ -45,10 +45,10 @@
         <button  type="button" name="collapse" class="collapse">-</button>
         <fieldset name="type">
           <legend>output:</legend>
-          <select>
-            <option value="p5js">p5.js</option>
-            <option value="array">array</option>
-            <option value="json">JSON</option>
+          <select name="type">
+            <option id="p5js" value="p5js">p5.js</option>
+            <option id="array" value="array">array</option>
+            <option id="json" value="json">JSON</option>
           </select>
           <button type="button" name="copy">copy to buffer</button>
           <button type="submit" name="save">save to file</button>
@@ -59,6 +59,10 @@
         <!-- <button  type="button" name="collapse" class="collapse">-</button> -->
         <fieldset name="textarea">
           <legend>your code:</legend>
+          <select name="type">
+            <option id="p5js" value="p5js">p5.js</option>
+            <option id="json" value="json">JSON</option>
+          </select>
           <textarea name="text" rows="20" readonly placeholder="// you code here"></textarea>
         </fieldset>
       </form><!-- history -->
@@ -169,7 +173,7 @@
           <li>x: delete shape</li>
           <li>w: up shape</li>
           <li>s: down shape</li>
-          <li>alt+click: delete node</li>
+          <li>alt+click: delete anchor point</li>
           <li>spacebar: autodetect shapes</li>
           <li>v: show all shapes/ show current shape</li>
         </ul>

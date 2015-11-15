@@ -75,15 +75,11 @@
       padding: 0;
     }
 
-/*    #draw form {
-      flex: 1 0 auto;
-    }*/
 
     #draw form[name=img] {
       position: relative;
       flex: 1 0 90%;
       display: flex;
-      /*position: relative;*/
     }
 
     button {
@@ -91,9 +87,6 @@
     }
 
     body {
-      /*background-color: #95a6a5;*/
-      /*background-color: #788c8d;*/
-      /*background-color: #34495e;*/
       background-color: #ecf0f1;
     }
 
@@ -126,7 +119,8 @@
       right: 10px;
       font-size: .1em;
       background-color: rgb(241, 196, 15);
-      border: 1px solid grey;
+      border: 1px solid rgb(241, 196, 15);
+      border-radius: 50%;
     }
 
     button .collapse:hover{
@@ -140,9 +134,6 @@
       border-radius: 5px;
     }
 
-    form[name=output] {
-      /*flex: 1 0 50%;*/
-    }
 
     .partout {
       height: 100%;
@@ -165,7 +156,6 @@
     }
 
     form > fieldset > legend {
-      /*color: rgba(0,0,0,.7);*/
       color: white;
       background-color: rgba(0, 0, 0, .8);
       text-transform: lowercase;
@@ -210,7 +200,6 @@
       color:white;
       text-transform: lowercase;
       font-size: .6em;
-      /*display: inline-block;*/
     }
 
     .inputfile + label, button, input, label {
@@ -237,7 +226,6 @@
       width: 100%;
       height: auto;
       outline: none;
-      /*resize: none;*/
     }
 
     fieldset[name=coordinates] input {
@@ -270,8 +258,6 @@
     background-color: white;
     width: 50%;
     height: 80%;
-    /*background: url(../img/shaper.jpg) no-repeat top center;*/
-    /*border: 10px dashed lightgrey;*/
     display: flex;
   }
 
