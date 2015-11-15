@@ -1,3 +1,5 @@
+
+
     "use strict"
 
 
@@ -7,6 +9,7 @@
       const $ = str => document.querySelector(str);
       const _ = str => $(`input[name=${str}]`);
       const is = str => _(str).checked;
+      let firstClick = true;
 
       // const imgBox = $('.img-box');
       const imgBox = $('form[name=img]');
@@ -63,6 +66,7 @@
           canvas = obj.canvas;
           ctx = obj.ctx;
           listenCanvas();
+          btn.launch();
         },
         reset () { 
           Object.keys(initial).forEach( e => {
@@ -170,7 +174,6 @@
         toString(type) {
         let ff = toRGB(this.pathColor);
         let aa = toRGB(this.fillColor);
-        console.log(this.strokePath); /////// brainfuck string
         let str =
 `${!this.strokePath && 'noStroke();' 
 ||`stroke(${ ff() }, ${ ff() }, ${ ff() }, ${ Math.round(255 * this.lineOpacity) });`
@@ -216,8 +219,6 @@ ${ this.closePath && 'endShape(CLOSE);' || 'endShape();'}\n`;
       }
     };
 
-    // const test222 =[]; /////////
-
 
     const pathTuning = () => ({
       fillColor: _('fillColor').value, 
@@ -237,6 +238,7 @@ ${ this.closePath && 'endShape(CLOSE);' || 'endShape();'}\n`;
 
       let method = {
 
+        renew() { btn.create(); },
 
         update (e) { current[e.target.name] = e.target.value; },
 
@@ -245,9 +247,6 @@ ${ this.closePath && 'endShape(CLOSE);' || 'endShape();'}\n`;
             _(elm).value = current[elm];
             _(elm).checked = current[elm];
           };
-          // _('closePath').checked = current.closePath; // ugly ..................................
-          // _('fillPath').checked = current.fillPath;
-          // _('stokePath').checked = current.strokePath;
         },
         
         clear () { ctx.clearRect(0,0, canvas.width, canvas.height); },
@@ -335,7 +334,7 @@ ${arr.map((e,i) => `// shape #${i}\n${e.toString(type)}`).join('\n')}`;
             };
         },
 
-        show() {console.log(current)},
+        show() {console.log(arr)},
         get () {return current} // ugly
       };
 
@@ -358,22 +357,6 @@ ${arr.map((e,i) => `// shape #${i}\n${e.toString(type)}`).join('\n')}`;
         };
     
     const len = (a, b) => Math.sqrt(Math.pow(a.x-b.x, 2) + Math.pow(a.y-b.y, 2));
-
-
-    const pathTranslate = {
-      write: {
-        p5js: {
-          beginPath: 'beginShape',
-          closePath: 'endShape(CLOSE)',
-          lineWidth: 'strokeWeight',
-          end: 'endShape',
-          fillStyle: 'fill',
-          strokeStyle: 'stroke',
-          nostroke: 'nostroke',
-          nofill: 'noFill'
-        }
-      }
-    }
 
     const shape = (state) => { //after all remove state...
       return Object.assign(
@@ -503,6 +486,12 @@ ${arr.map((e,i) => `// shape #${i}\n${e.toString(type)}`).join('\n')}`;
       };
 
       document.body.addEventListener('click', e => {
+        if (firstClick) {
+          console.log('firstclick')
+          console.log($('.help').classList)
+          $('.help').classList.toggle('hide');
+          firstClick = false;
+        };
         if (e.target.type === 'button') {
           btn[e.target.name](e);
         };
@@ -749,6 +738,7 @@ ${arr.map((e,i) => `// shape #${i}\n${e.toString(type)}`).join('\n')}`;
     setRange('input[name=offsetX]', size.w);
     setRange('input[name=offsetY]', size.h);
     listenCanvas();
+    btn.launch();
   }
 
     function setRange(str, value){
@@ -757,27 +747,6 @@ ${arr.map((e,i) => `// shape #${i}\n${e.toString(type)}`).join('\n')}`;
       elm.max = value;
     }
 
+    console.log('hello, there... \nif you have questions. \nyou can write me at\nandrei.fzto {meow} gmail.com')
 
-      // const history = (u,r) => {
-      //   let ab = (a,b) => {
-      //     let x = a.arr.pop();
-      //     if (!a.arr.length) { a.elm.disabled = true; }
-      //     if (!b.arr.length) { b.elm.disabled = false; }
-      //     b.arr.push(x);
-      //     return x;
-      //   };
-      //   let clear = a => { a.arr =[]; a.flag = false; };
-      //   return {
-      //     add (elm) {
-      //       u.arr.push(elm);
-      //       r.arr = [];
-      //       u.elm.disabled = false;
-      //       r.elm.disabled = true;
-      //     },
-      //     undo () { return ab(u,r); },
-      //     redo () { return ab(r,u); },
-      //     reset () { clear(a); clear(b); }        
-      //   };
-      // };
 
-      console.log('hello, there... \nif you have questions. \nyou can write me at\nandrei.fzto {meow} gmail.com')

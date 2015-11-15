@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>shaper</title>
+  <title>shaper 0.0.001</title>
   <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 <body>
@@ -27,7 +27,6 @@
           <input type="file" name="file" id="file" class="inputfile" />
           <label for="file">Choose a file</label>
           <button class="ok" type='button' name='create'>new canvas</button>
-          <button class="info" type="button" name="launch">launch</button>
         </fieldset>
       </form>
       <form>
@@ -36,13 +35,13 @@
             <legend>show/hide</legend>
             <div classs="flex row">
               <label><input type="checkbox" name="showImage" checked>image</label>
-              <label><input type="checkbox" name="showCurrent" checked>current spape<span class="hotkey">(c)</span></label>
-              <label><input type="checkbox" name="showShapes" checked>other shapes<span class="hotkey">(v)</span></label>
+              <label><input type="checkbox" name="showCurrent" checked>current(c)</label>
+              <label><input type="checkbox" name="showShapes" checked>other(v)</label>
               <label><input type="checkbox" name="showNodes" checked>nodes</label>
             </div>
           </fieldset>   
       </form>
-      <form name="output">
+<!--       <form name="output">
         <button  type="button" name="collapse" class="collapse">-</button>
         <fieldset name="type">
           <legend>output:</legend>
@@ -55,7 +54,7 @@
           <button type="submit" name="save">save to file</button>
           <label><input type="checkbox" name="withColor" checked>with color</label>
         </fieldset>
-      </form>
+      </form> -->
       <form name="youCode">
         <!-- <button  type="button" name="collapse" class="collapse">-</button> -->
         <fieldset name="textarea">
@@ -67,14 +66,6 @@
 
     <section id="draw">
       <form name="img">
-        <div class="partout dashed-border">
-          <div class="img-box">
-            <div class="text">
-              <h1>Hello!</h1>
-              <p>choose file, make shapes, have a fun with p5.js</p>
-              </div>
-          </div><!--.img-box-->
-        </div><!--.img-wrapper-->
       </form><!-- img -->
     </section><!--#draw-->
 
@@ -94,9 +85,9 @@
         <form>
           <button  type="button" name="collapse" class="collapse">-</button>
           <fieldset name="nodes">
-            <legend>Nodes: </legend>
-            <label><input type="radio" name="node" value="line" checked id="nodeLine"/>line <span class="hotkey">(q)</span></label>
-            <label><input type="radio" name="node" value="quadratic" id="nodeCurve"/>curve <span class="hotkey">(e)</span></label>
+            <legend>anchor point:</legend>
+            <label><input type="radio" name="node" value="line" checked id="nodeLine"/>line (q)</label>
+            <label><input type="radio" name="node" value="quadratic" id="nodeCurve"/>quadratic (e)</label>
           </fieldset>
         </form>
 
@@ -104,13 +95,13 @@
           <button  type="button" name="collapse" class="collapse">-</button>
           <fieldset name="path">
             <legend>path:</legend>
-            <button class="ok" type="button" name="newPath">new <span class="hotkey">(r)</span></button>
-            <button class="danger" type="button" name="delPath">del <span class="hotkey">(x)</span></button>
+            <button class="ok" type="button" name="newPath">new (r)</button>
+            <button class="danger" type="button" name="delPath">del (x)</button>
             <fieldset class="no-border">
-              <button class="info" type="button" name="nextPath">next <span class="hotkey">(a)</span></button>
-              <button class="info" type="button" name="prevPath">prev <span class="hotkey">(d)</span></button>
+              <button class="info" type="button" name="nextPath">next (a)</button>
+              <button class="info" type="button" name="prevPath">prev (d)</button>
             </fieldset>
-            <label>autodetect path: <span class="hotkey">(spacebar)</span><input type="checkbox" name="fixedCurrent"/></label>
+            <label>autodetect path: (spacebar)<input type="checkbox" name="fixedCurrent"/></label>
           </fieldset>
         </form><!-- toolbox -->
 
@@ -125,12 +116,12 @@
              
               <fieldset name="ou">
                 <legend>position</legend>
-                <button class="info" type="button"name="pathOver">over <span class="hotkey">(w)</span></button>
-                <button class="info" type="button" name="pathUnder">under <span class="hotkey">(u)</span></button>
+                <button class="info" type="button"name="pathOver">up (w)</button>
+                <button class="info" type="button" name="pathUnder">down (u)</button>
               </fieldset>
 
               <fieldset>
-                <legend>path</legend>
+                <legend>path:</legend>
                 <div class="flex row">
                   <label><input type="checkbox" name="strokePath" checked/>stroke</label>  
                   <label><input type="checkbox" name="closePath" />close</label>  
@@ -140,19 +131,19 @@
 
               <fieldset name="colors">
                 <legend>colors: </legend>
-                <label>line: <input type="color" name="pathColor" id="pathColor"  value="#000000"></label>
+                <label>stoke: <input type="color" name="pathColor" id="pathColor"  value="#000000"></label>
                 <label>fill: <input type="color" name="fillColor" id="fillColor" value="#CCCCCC"></label>
               </fieldset>
           
               <fieldset>
-                <legend>line:</legend>
+                <legend>stroke:</legend>
                 <label>width:<span></span><input type="range" name="lineWidth" min="0.1" max="10" value="1" step=".1" /></label>
               </fieldset>
           
               <fieldset>
                 <legend>opacity:</legend>
-                <label>shape: <span></span><input type="range" name="shapeOpacity" min="0" max="1" value="1" step=".1"></label> 
-                <label>line: <span></span><input type="range" name="lineOpacity" min="0" max="1" value="1" step=".1"></label> 
+                <label>stroke: <span></span><input type="range" name="lineOpacity" min="0" max="1" value="1" step=".1"></label> 
+                <label>fill: <span></span><input type="range" name="shapeOpacity" min="0" max="1" value="1" step=".1"></label> 
               </fieldset>
 
             </fieldset>
@@ -162,6 +153,29 @@
       </section><!--#toolbox-->
 
   </div><!--.container-->
+
+
+     <div class="help">
+      <div class="msg">
+        <h1>Hello!</h1>
+        <p>choose file, make shapes, have a fun with p5.js</p>
+        <h5>Hotkeys:</h5>
+        <ul>
+          <li>q: line anchor point</li>
+          <li>e: quadratic anchor point</li>
+          <li>r: new shape</li>
+          <li>a: prev shape</li>
+          <li>d: next shape</li>
+          <li>x: delete shape</li>
+          <li>w: up shape</li>
+          <li>s: down shape</li>
+          <li>alt+click: delete node</li>
+          <li>spacebar: autodetect shapes</li>
+          <li>v: show all shapes/ show current shape</li>
+        </ul>
+      </div>
+    </div> 
+
   <script src=js/main.js></script>
 
   </body>

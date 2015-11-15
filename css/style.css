@@ -26,7 +26,7 @@
     }
 
     .hide {
-      display: none;
+      display: none !important;
     }
 
     .hidden {
@@ -55,8 +55,12 @@
       flex-direction: column;
     }
 
+    form[name=image] {
+      background-color: white;
+    }
+
     #toolbox {
-      flex: 1 0 20%;
+      flex: 1 0 15%;
       /*margin: auto;*/
     }
 
@@ -66,7 +70,7 @@
     }
 
     #draw {
-      flex: 1 0 65%;
+      flex: 1 0 70%;
       height: 100%;
       padding: 0;
     }
@@ -176,14 +180,6 @@
       font-size: .6em;
     }
 
- *{
-  -webkit-transition: all 1s ease-in-out;
-  -moz-transition: all 1s ease-in-out;
-  -o-transition: all 1s ease-in-out;
-  transition: all 1s ease-in-out;
-}
-
-
     label {
       font-size: .6em;
     }
@@ -229,6 +225,7 @@
       width: 100%; 
       padding: 0;
       margin: 0;
+      display:block;
     }
 
     fieldset[name="textarea"] {
@@ -262,4 +259,56 @@
 
   input[type=text] {
     width: 100%;
+  }
+
+  .help {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 455px;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    width: 50%;
+    height: 80%;
+    /*background: url(../img/shaper.jpg) no-repeat top center;*/
+    /*border: 10px dashed lightgrey;*/
+    display: flex;
+  }
+
+  .msg {
+    background-color: white;
+  }
+
+  .help h1, h5, h6, p, ul   {
+    padding: 2px 6px;
+    display: inline-block;
+    padding: 2px;
+    margin: 0 0 5px 0;
+    color: black;
+  }
+
+  .help p {
+    font-size: .8em;
+  }
+
+  .help h5 {
+    margin-top: 10px;
+    margin-bottom: 15px;
+    /*background-color: orange;*/
+  }
+
+  .help ul {
+    list-style: none;
+    font-size: .5em;
+    background-color: rgba(200,200,200,.5);
+    padding: 30px;
+  }
+
+  .msg {
+    padding-left: 30%;
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
   }
