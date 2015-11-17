@@ -241,6 +241,27 @@ ${ this.closePath && 'endShape(CLOSE);' || 'endShape();'}\n`;
 
       let method = {
 
+
+        panic () {
+          ctx.beginPath();
+
+          ctx.strokeStyle = "rgba(10,10,10,1)";
+          ctx.lineWidth = 1;
+
+          ctx.moveTo(arr[0].x + noise(xoff,yoff)*100, arr[0].y + noise(xoff,yoff)*100);
+          for (let i = 1; i < arr.length; i++) {
+            console.log(i);
+            ctx.lineTo(arr[i].x + noise(xoff,yoff)*100, arr[i].y + noise(xoff,yoff)*100);
+          };
+              xoff+=xincrement;
+              yoff+=yinc;
+
+          // ctx.fillStyle = `rgba(${aa()}, ${aa()}, ${aa()}, ${this.shapeOpacity})`;
+          // ctx.fill();
+          ctx.closePath();
+          ctx.stroke();
+        },
+
         json () { $('textarea').value = arr.map(e => JSON.stringify(e, null, ' '));},
 
         renew () { btn.create(); },
@@ -353,13 +374,6 @@ ${arr.map((e,i) => `// shape #${i}\n${e.toString(type)}`).join('\n')}`;
       init () { return this.arr.slice(0, -1)},
       last () { return this.arr.slice(-1)[0]}
     };
-
-    const saveToFile = () => {
-          let filename = 'shape.js';
-          let text = $(textarea).value;
-          let blob = new Blob([text], {type: "text/plain;charset=utf-8"});
-          saveAs(blob, filename+".js");
-        };
     
     const len = (a, b) => Math.sqrt(Math.pow(a.x-b.x, 2) + Math.pow(a.y-b.y, 2));
 
@@ -484,12 +498,15 @@ ${arr.map((e,i) => `// shape #${i}\n${e.toString(type)}`).join('\n')}`;
         if ( $('#json').selected) { scene.json(); };
         // scene.write();
         scene.clear();
+                if( _('panic').checked) {scene.panic();}
+                else {
+
         ctx.setTransform(map.z, 0, 0, map.z, map.x, map.y);
         if (img && is('showImage')) {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         }
         scene.drawPath(map);
-        if (is('showNodes') && is('showCurrent')) scene.drawRect(map);
+        if (is('showNodes') && is('showCurrent')) scene.drawRect(map);}
       };
 
       document.body.addEventListener('click', e => {
@@ -752,6 +769,36 @@ ${arr.map((e,i) => `// shape #${i}\n${e.toString(type)}`).join('\n')}`;
       elm.max = value;
     }
 
-    console.log('hello, there... \nif you have questions. \nyou can write me at\nandrei.fzto {meow} gmail.com')
+  console.log('hello, there... \nif you have questions. \nyou can write me at\nandrei.fzto {meow} gmail.com');
+
+  //   var w = window.innerWidth;
+  // var h = window.innerHeight;
+  var xoff = .0;
+  var yoff =.0;
+  var yinc = .008;
+  var xincrement = .008;
+  var opacity = 0;
+
+  function setup(){
+    // createCanvas(w,h);
+    background(60);
+    frameRate(60);
+  }
+
+
+  // function draw() {
+  //   fill(60,50);
+  //   rect(0,0,w,h);
+  //   // for(var i =0 ; i < w; i++){
+  //     noStroke();
+  //     fill(204,100,random(255));
+  //     ellipse(noise(xoff, yoff)*w, noise(yoff)*h,10,10);
+
+  //     // console.log(noise(xoff));
+  //   // }
+  //   xoff+=xincrement;
+  //   yoff+=yinc;
+  //   opacity++;
+  // }
 
 
