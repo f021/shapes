@@ -1,0 +1,38 @@
+{
+  "name": "shaper",
+  "version": "0.0.1",
+  "description": "simple vector graphic editor",
+  "main": "index.js",
+  "dependencies": {
+    "babel-core": "^6.1.21",
+    "babel-runtime": "^6.1.18"
+  },
+  "devDependencies": {
+    "babel-core": "^6.1.21",
+    "babel-loader": "^6.2.0",
+    "babel-preset-es2015": "^6.1.18",
+    "webpack": "^1.12.6",
+    "webpack-dev-server": "^1.12.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f021/shapes.git"
+  },
+  "keywords": [
+    "p5js",
+    "canvas",
+    "vector",
+    "editor",
+    "shape",
+    "image"
+  ],
+  "author": "andrei",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/f021/shapes/issues"
+  },
+  "homepage": "https://github.com/f021/shapes#readme"
+}
